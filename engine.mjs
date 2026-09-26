@@ -86,10 +86,53 @@ export function validateBank(bank) {
     if (!Array.isArray(q.options) || q.options.length !== (q.type === 'single' ? 4 : 5) || new Set(q.options).size !== q.options.length) throw new Error(`Invalid options ${q.id}.`);
     if (!Array.isArray(q.answers) || q.answers.length !== (q.type === 'single' ? 1 : 2) || new Set(q.answers).size !== q.answers.length || q.answers.some(i => !Number.isInteger(i) || i < 0 || i >= q.options.length)) throw new Error(`Invalid answers ${q.id}.`);
     if (!Array.isArray(q.explanations) || q.explanations.length !== q.options.length || q.explanations.some(s => !s) || !q.takeaway) throw new Error(`Missing explanation ${q.id}.`);
-    const source = new URL(q.source);
-    if (source.protocol !== 'https:' || !(source.hostname === 'aws.amazon.com' || source.hostname.endsWith('.aws.amazon.com') || source.hostname === 'docs.aws.amazon.com')) throw new Error(`Invalid source ${q.id}.`);
+    if (!isAwsSource(q.source)) throw new Error(`Invalid source ${q.id}.`);
   }
   return true;
+}
+export function isAwsSource(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && (url.hostname === 'aws.amazon.com' || url.hostname.endsWith('.aws.amazon.com'));
+  } catch { return false; }
+}
+export const STUDY_KINDS = { service: 'AWS services', concept: 'Exam concepts' };
+export function validateSyllabus(syllabus) {
+  const text = value => typeof value === 'string' && value.trim().length > 0;
+  if (!syllabus || !Array.isArray(syllabus.sections) || !syllabus.sections.length) throw new Error('The study checklist could not be loaded.');
+  const ids = new Set();
+  for (const s of syllabus.sections) {
+    if (!s || !text(s.id) || ids.has(s.id) || !STUDY_KINDS[s.kind] || !['core', 'supporting'].includes(s.priority) || !['group', 'title', 'summary'].every(k => text(s[k])) || !isAwsSource(s.source) || !Array.isArray(s.items) || !s.items.length) throw new Error(`Invalid study section ${s?.id}.`);
+    ids.add(s.id);
+    for (const item of s.items) {
+      if (!item || !text(item.id) || ids.has(item.id) || !['name', 'summary', 'details', 'example'].every(k => text(item[k])) || (item.tip !== undefined && !text(item.tip)) || (item.source !== undefined && !isAwsSource(item.source))) throw new Error(`Invalid study item ${item?.id} in ${s.id}.`);
+      ids.add(item.id);
+    }
+  }
+  return true;
+}
+export function studyProgress(sections, learned = {}) {
+  const progress = { done: 0, total: 0, kinds: {}, sections: {} };
+  for (const s of sections) {
+    const done = s.items.filter(item => learned[item.id]).length, kind = progress.kinds[s.kind] ||= { done: 0, total: 0 };
+    progress.sections[s.id] = { done, total: s.items.length };
+    kind.done += done; kind.total += s.items.length;
+    progress.done += done; progress.total += s.items.length;
+  }
+  return progress;
+}
+export function filterStudy(sections, { kind = null, query = '', status = 'all', priority = 'all' } = {}, learned = {}) {
+  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+  return sections.flatMap(s => {
+    if ((kind && s.kind !== kind) || (priority === 'core' && s.priority !== 'core')) return [];
+    const sectionText = `${s.title} ${s.summary}`.toLowerCase();
+    const items = s.items.filter(item => {
+      if ((status === 'learned' && !learned[item.id]) || (status === 'todo' && learned[item.id])) return false;
+      const itemText = `${sectionText} ${item.name} ${item.summary} ${item.details}`.toLowerCase();
+      return terms.every(term => itemText.includes(term));
+    });
+    return items.length ? [{ ...s, items }] : [];
+  });
 }
 export function validSession(s, bank) {
   if (!s || !MODES[s.mode] || !Array.isArray(s.ids) || !s.ids.length || new Set(s.ids).size !== s.ids.length || !Number.isInteger(s.index) || s.index < 0 || s.index >= s.ids.length || !Number.isFinite(s.startedAt)) return false;

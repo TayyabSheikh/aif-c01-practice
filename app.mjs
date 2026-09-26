@@ -1,12 +1,15 @@
-import { DOMAINS, MODES, makeSession, scoreSession, applyResult, isCorrect, needsReview, validateBank, validSession } from './engine.mjs';
+import { DOMAINS, MODES, STUDY_KINDS, makeSession, scoreSession, applyResult, isCorrect, needsReview, validateBank, validSession, validateSyllabus, studyProgress, filterStudy } from './engine.mjs';
 
 const main = document.querySelector('main');
 const STORAGE = 'ai-practitioner-practice-v1';
+const STUDY_STORAGE = 'ai-practitioner-study-v1';
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
 let bank = [], byId = new Map(), state = { stats: {}, history: [], active: null };
 let view = 'home', mode = 'quick', domain = 0, result = null, reviewFilter = 'all', storageFailed = false, notice = '';
 let timer;
+let syllabus = null, learned = {}, studyKind = 'service', studyQuery = '', studyStatus = 'all', studyPriority = 'all';
+const openSections = new Set();
 function announce(message) { document.querySelector('#status').textContent = message; }
 function save() {
   try { localStorage.setItem(STORAGE, JSON.stringify(state)); }
@@ -26,7 +29,7 @@ function statEntries() { return Object.entries(state.stats); }
 function reviewIds() { return bank.filter(q => needsReview(state.stats[q.id])).map(q => q.id); }
 function answered(s) { return s.ids.filter(id => (s.answers[id] || []).length === byId.get(id).answers.length).length; }
 function render(focus = false) {
-  main.innerHTML = (storageFailed ? '<div class="notification">Progress cannot be saved in this browser. Keep this page open while you practise.</div>' : '') + (notice ? `<div class="notification">${escape(notice)}</div>` : '') + (view === 'quiz' ? quizHTML() : view === 'result' ? resultsHTML() : homeHTML());
+  main.innerHTML = (storageFailed ? '<div class="notification">Progress cannot be saved in this browser. Keep this page open while you practise.</div>' : '') + (notice ? `<div class="notification">${escape(notice)}</div>` : '') + (view === 'quiz' ? quizHTML() : view === 'result' ? resultsHTML() : view === 'study' && syllabus ? studyHTML() : homeHTML());
   if (focus) focusMain();
   updateTimer();
 }
@@ -42,6 +45,7 @@ function homeHTML() {
   <p class="info-note">${mode === 'mock' ? '90 minutes. Answers stay hidden until you submit. Unanswered questions count as incorrect.' : 'See why each answer works. New questions are prioritised in every session.'}</p>
   </section><aside class="panel progress-panel" aria-label="Your progress"><p class="eyebrow">YOUR PROGRESS</p><div class="stat-large">${accuracy}<span>first-attempt accuracy</span></div><div class="mini-stats"><div><strong>${stats.length}<span> / ${bank.length}</span></strong><span>questions tried</span></div><div><strong>${reviewCount}</strong><span>to revisit</span></div></div>
   <button class="secondary full-width" data-action="review" ${!reviewCount ? 'disabled' : ''}>Review mistakes <span aria-hidden="true">↺</span></button><div class="progress-note">Progress is saved on this browser.<br>Finishing a session updates your stats.</div></aside></div>
+  ${syllabus ? studyCardHTML() : ''}
   <div class="section-row"><h2>Every exam domain, covered</h2><span>Weighted to the AIF-C01 guide</span></div><div class="domain-list">${DOMAINS.map(d => {
     const items = bank.filter(q => q.domain === d.id), attempted = items.filter(q => state.stats[q.id]);
     return `<div class="domain-item"><div class="domain-top"><span>0${d.id}</span><span>${d.weight}% of exam</span></div><h3>${escape(d.short)}</h3><div class="track" aria-label="${attempted.length} of ${items.length} questions tried"><span style="width:${pct(attempted.length, items.length)}%"></span></div><p class="domain-count">${attempted.length} / ${items.length} questions tried</p></div>`;
@@ -85,6 +89,88 @@ function resultsHTML() {
     return `<details class="review-item"><summary><span class="result-dot ${row.correct ? '' : 'wrong'}" aria-label="${row.correct ? 'Correct' : 'Incorrect'}">${row.correct ? '✓' : '×'}</span><span>${escape(q.question)}</span></summary><div class="review-body"><p class="review-answer"><strong>Your answer:</strong> ${row.selected.length ? row.selected.map(i => escape(q.options[i])).join(' • ') : 'Unanswered'}</p><p class="review-answer"><strong>Correct answer:</strong> ${q.answers.map(i => escape(q.options[i])).join(' • ')}</p><div class="rationale" style="margin-bottom:16px">${order.map((i, p) => `<p><strong>${String.fromCharCode(65 + p)}.</strong> ${escape(q.options[i])}</p>`).join('')}</div>${explanationHTML(q, row.selected, order)}</div></details>`;
   }).join('') : '<div class="panel empty">No answers in this category.</div>'}`;
 }
+function readStudy() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STUDY_STORAGE) || 'null');
+    const ids = new Set(syllabus.sections.flatMap(s => s.items.map(i => i.id)));
+    learned = Object.fromEntries(Object.entries(saved?.learned || {}).filter(([id, at]) => ids.has(id) && Number.isFinite(at)));
+  } catch { storageFailed = true; }
+}
+function saveStudy() {
+  try { localStorage.setItem(STUDY_STORAGE, JSON.stringify({ learned })); }
+  catch { storageFailed = true; announce('Browser storage is unavailable. Checklist progress will not be saved.'); }
+}
+function studyCardHTML() {
+  const p = studyProgress(syllabus.sections, learned);
+  return `<div class="section-row"><h2>Study checklist</h2><span>${p.done} of ${p.total} learned</span></div><section class="panel study-card" aria-label="Study checklist"><div><p>Every in-scope AWS service and exam concept, each with a one-liner, an example and an exam tip. Tick items off as you learn them.</p><div class="study-card-stats">${Object.entries(STUDY_KINDS).map(([kind, label]) => {
+    const k = p.kinds[kind] || { done: 0, total: 0 };
+    return `<div><strong>${k.done}<span> / ${k.total}</span></strong><span>${label}</span><div class="track"><span style="width:${pct(k.done, k.total)}%"></span></div></div>`;
+  }).join('')}</div></div><button class="primary" data-action="study">Open checklist <span aria-hidden="true">→</span></button></section>`;
+}
+function studyHTML() {
+  const p = studyProgress(syllabus.sections, learned);
+  return `<div class="subnav"><button class="text-button" data-action="home">← Back to practice</button><span class="session-badge">Study checklist</span></div>
+  <div class="page-heading"><div><p class="eyebrow">STUDY CHECKLIST</p><h1>Know what to learn.</h1><p class="muted">Tick items off as you learn them. Tap an item for details, an example and an exam tip.</p></div><span class="bank-pill" data-progress="all">${p.done} of ${p.total} learned</span></div>
+  <div class="study-tabs" role="group" aria-label="Checklist section">${Object.entries(STUDY_KINDS).map(([kind, label]) => `<button class="${kind === studyKind ? 'selected' : ''}" data-action="study-kind" data-kind="${kind}" aria-pressed="${kind === studyKind}">${label}<span data-progress="kind-${kind}">${p.kinds[kind]?.done || 0}/${p.kinds[kind]?.total || 0}</span></button>`).join('')}</div>
+  <div class="study-toolbar"><label class="field study-search" for="study-search">Search<input id="study-search" type="search" value="${escape(studyQuery)}" placeholder="e.g. Macie, RAG, temperature" autocomplete="off" spellcheck="false"></label>
+  <label class="field" for="study-status">Show<select id="study-status">${[['all', 'All items'], ['todo', 'Not learned yet'], ['learned', 'Learned']].map(([value, label]) => `<option value="${value}" ${studyStatus === value ? 'selected' : ''}>${label}</option>`).join('')}</select></label>
+  ${studyKind === 'service' ? `<label class="field" for="study-priority">Priority<select id="study-priority">${[['all', 'All services'], ['core', 'Core only']].map(([value, label]) => `<option value="${value}" ${studyPriority === value ? 'selected' : ''}>${label}</option>`).join('')}</select></label>` : ''}</div>
+  <div id="study-list">${studyListHTML()}</div>
+  <div class="study-footer"><button class="text-button" data-action="study-reset" ${p.done ? '' : 'disabled'}>Reset checklist</button><p>Checklist progress is saved on this browser, separately from practice scores.</p></div>`;
+}
+function studyListHTML() {
+  const sections = filterStudy(syllabus.sections, { kind: studyKind, query: studyQuery, status: studyStatus, priority: studyKind === 'service' ? studyPriority : 'all' }, learned);
+  if (!sections.length) return '<div class="panel empty">No items match. Try a different search or filter.</div>';
+  const progress = studyProgress(syllabus.sections, learned).sections;
+  let group = '';
+  return sections.map(s => {
+    const heading = s.group === group ? '' : `<div class="section-row study-group"><h2>${escape(group = s.group)}</h2></div>`;
+    const p = progress[s.id], open = studyQuery || openSections.has(s.id);
+    return `${heading}<details class="study-section" data-section="${escape(s.id)}" ${open ? 'open' : ''}><summary><span class="study-section-head"><strong>${escape(s.title)}</strong>${s.kind === 'service' ? `<span class="tag ${s.priority}">${s.priority === 'core' ? 'Core' : 'Supporting'}</span>` : ''}</span><span class="study-section-summary">${escape(s.summary)}</span><span class="study-section-progress"><span data-progress="section-${escape(s.id)}">${p.done}/${p.total}</span><span class="track"><span data-progress-bar="section-${escape(s.id)}" style="width:${pct(p.done, p.total)}%"></span></span></span></summary>
+    <div class="study-items">${s.items.map(item => studyItemHTML(item, s)).join('')}</div>
+    <div class="study-section-actions"><button class="text-button" data-action="study-mark" data-section="${escape(s.id)}" data-value="1">Mark all as learned</button><button class="text-button" data-action="study-mark" data-section="${escape(s.id)}" data-value="0">Clear</button></div></details>`;
+  }).join('');
+}
+function studyItemHTML(item, section) {
+  const done = !!learned[item.id];
+  return `<div class="study-item ${done ? 'learned' : ''}"><label class="study-check"><input type="checkbox" name="learned" value="${escape(item.id)}" data-section="${escape(section.id)}" aria-label="Mark ${escape(item.name)} as learned" ${done ? 'checked' : ''}></label><details><summary><strong>${escape(item.name)}</strong><span>${escape(item.summary)}</span></summary><div class="study-detail"><p>${escape(item.details)}</p><p><strong>Example:</strong> ${escape(item.example)}</p>${item.tip ? `<p class="study-tip"><strong>Exam tip:</strong> ${escape(item.tip)}</p>` : ''}<a class="source" href="${escape(item.source || section.source)}" target="_blank" rel="noopener noreferrer">AWS reference ↗</a></div></details></div>`;
+}
+function renderStudyList() {
+  const list = main.querySelector('#study-list');
+  if (list) list.innerHTML = studyListHTML();
+}
+function updateStudyProgress() {
+  const p = studyProgress(syllabus.sections, learned);
+  main.querySelectorAll('[data-progress]').forEach(el => {
+    const key = el.dataset.progress;
+    if (key === 'all') el.textContent = `${p.done} of ${p.total} learned`;
+    else if (key.startsWith('kind-')) { const k = p.kinds[key.slice(5)]; if (k) el.textContent = `${k.done}/${k.total}`; }
+    else if (key.startsWith('section-')) { const s = p.sections[key.slice(8)]; if (s) el.textContent = `${s.done}/${s.total}`; }
+  });
+  main.querySelectorAll('[data-progress-bar]').forEach(el => { const s = p.sections[el.dataset.progressBar.slice(8)]; if (s) el.style.width = `${pct(s.done, s.total)}%`; });
+  const reset = main.querySelector('[data-action="study-reset"]');
+  if (reset) reset.disabled = !p.done;
+  return p;
+}
+function setLearned(ids, value) {
+  for (const id of ids) { if (value) learned[id] ||= Date.now(); else delete learned[id]; }
+  saveStudy();
+  const wanted = new Set(ids);
+  main.querySelectorAll('input[name="learned"]').forEach(input => {
+    if (!wanted.has(input.value)) return;
+    input.checked = value;
+    input.closest('.study-item')?.classList.toggle('learned', value);
+  });
+  return updateStudyProgress();
+}
+function openStudy() {
+  if (!syllabus) return;
+  if (location.hash !== '#study') { location.hash = 'study'; return; }
+  view = 'study'; notice = ''; render(true);
+}
+function leaveStudy() {
+  if (location.hash === '#study') history.replaceState(null, '', location.pathname + location.search);
+}
 function start(nextMode, nextDomain = 0, ids = null) {
   notice = ''; result = null; reviewFilter = 'all';
   let session;
@@ -95,10 +181,10 @@ function start(nextMode, nextDomain = 0, ids = null) {
   } else session = makeSession(bank, nextMode, nextDomain, state.stats);
   state.active = session; view = 'quiz'; save(); render(true); announce(`${MODES[session.mode].title} started. ${session.ids.length} questions.`);
 }
-function confirmAction(title, text, label, action) {
+function confirmAction(title, text, label, action, cancelLabel = 'Keep practising') {
   document.querySelector('dialog')?.remove();
   const dialog = document.createElement('dialog');
-  dialog.innerHTML = `<h2 id="dialog-title">${escape(title)}</h2><p>${escape(text)}</p><div class="small-actions"><button class="secondary" data-cancel autofocus>Keep practising</button><button class="primary" data-confirm>${escape(label)}</button></div>`;
+  dialog.innerHTML = `<h2 id="dialog-title">${escape(title)}</h2><p>${escape(text)}</p><div class="small-actions"><button class="secondary" data-cancel autofocus>${escape(cancelLabel)}</button><button class="primary" data-confirm>${escape(label)}</button></div>`;
   dialog.setAttribute('aria-labelledby', 'dialog-title');
   document.body.append(dialog);
   dialog.querySelector('[data-cancel]').onclick = () => dialog.close();
@@ -164,7 +250,15 @@ main.addEventListener('click', event => {
   else if (action === 'start') requestStart(mode, domain);
   else if (action === 'review') requestStart('review');
   else if (action === 'resume') { view = 'quiz'; notice = ''; render(true); }
-  else if (action === 'home' || action === 'new') { view = 'home'; notice = ''; render(true); }
+  else if (action === 'home' || action === 'new') { leaveStudy(); view = 'home'; notice = ''; render(true); }
+  else if (action === 'study') openStudy();
+  else if (action === 'study-kind') { studyKind = button.dataset.kind; render(); main.querySelector(`[data-action="study-kind"][data-kind="${studyKind}"]`)?.focus(); }
+  else if (action === 'study-mark') {
+    const section = syllabus.sections.find(s => s.id === button.dataset.section), value = button.dataset.value === '1';
+    const p = setLearned(section.items.map(i => i.id), value);
+    announce(`${value ? 'Marked' : 'Cleared'} all items in ${section.title}. ${p.done} of ${p.total} learned.`);
+  }
+  else if (action === 'study-reset') confirmAction('Reset the study checklist?', 'Every ticked item will be cleared. Practice scores are not affected.', 'Reset checklist', () => { learned = {}; saveStudy(); render(); announce('Study checklist reset.'); }, 'Keep my progress');
   else if (action === 'check') checkAnswer();
   else if (action === 'finish') requestFinish();
   else if (action === 'next') { if (state.active.index === state.active.ids.length - 1) requestFinish(); else { state.active.index++; save(); render(true); } }
@@ -176,6 +270,11 @@ main.addEventListener('click', event => {
 main.addEventListener('change', event => {
   const input = event.target;
   if (input.id === 'domain') domain = Number(input.value);
+  else if (input.name === 'learned') {
+    const p = setLearned([input.value], input.checked), item = syllabus.sections.flatMap(s => s.items).find(i => i.id === input.value);
+    announce(`${input.checked ? 'Marked' : 'Unmarked'} ${item?.name || 'item'}. ${p.done} of ${p.total} learned.`);
+  }
+  else if (input.id === 'study-status' || input.id === 'study-priority') { if (input.id === 'study-status') studyStatus = input.value; else studyPriority = input.value; renderStudyList(); }
   else if (input.id === 'review-filter') { reviewFilter = input.value; render(); document.querySelector('#review-filter')?.focus({ preventScroll: true }); }
   else if (input.id === 'guessed') { state.active.guessed[state.active.ids[state.active.index]] = input.checked; save(); }
   else if (input.name === 'answer') {
@@ -184,7 +283,20 @@ main.addEventListener('change', event => {
     catch (error) { input.checked = false; announce(error.message); }
   }
 });
-document.querySelector('.brand').addEventListener('click', event => { if (!bank.length) return; event.preventDefault(); view = 'home'; notice = ''; render(true); });
+main.addEventListener('input', event => {
+  if (event.target.id !== 'study-search') return;
+  studyQuery = event.target.value; renderStudyList();
+});
+main.addEventListener('toggle', event => {
+  const details = event.target;
+  if (studyQuery || !details.matches?.('details.study-section')) return;
+  if (details.open) openSections.add(details.dataset.section); else openSections.delete(details.dataset.section);
+}, true);
+window.addEventListener('hashchange', () => {
+  if (location.hash === '#study' && syllabus) { view = 'study'; notice = ''; render(true); }
+  else if (view === 'study') { view = 'home'; render(true); }
+});
+document.querySelector('.brand').addEventListener('click', event => { if (!bank.length) return; event.preventDefault(); leaveStudy(); view = 'home'; notice = ''; render(true); });
 document.addEventListener('keydown', event => {
   if (view !== 'quiz' || document.querySelector('dialog[open]') || event.altKey || event.metaKey || event.ctrlKey || event.target.matches('select,textarea,input:not([type="radio"]):not([type="checkbox"])')) return;
   if (/^[1-5]$/.test(event.key)) { const input = main.querySelectorAll('input[name="answer"]')[Number(event.key) - 1]; if (input && !input.disabled) { event.preventDefault(); input.click(); input.focus({ preventScroll: true }); } }
@@ -209,10 +321,15 @@ function registerTools() {
 }
 async function boot() {
   try {
-    const response = await fetch('./questions.json');
+    const [response, studyResponse] = await Promise.all([fetch('./questions.json'), fetch('./syllabus.json').catch(() => null)]);
     if (!response.ok) throw new Error('Question download failed.');
     bank = await response.json(); validateBank(bank); byId = new Map(bank.map(q => [q.id, q]));
-    read(); render(); timer = setInterval(updateTimer, 1000); registerTools();
+    try {
+      if (studyResponse?.ok) { const data = await studyResponse.json(); validateSyllabus(data); syllabus = data; }
+    } catch (error) { syllabus = null; console.warn('Study checklist unavailable.', error); }
+    read();
+    if (syllabus) { readStudy(); if (location.hash === '#study') view = 'study'; }
+    render(); timer = setInterval(updateTimer, 1000); registerTools();
     document.addEventListener('visibilitychange', updateTimer);
   } catch (error) {
     main.innerHTML = '<div class="panel empty"><h1>Practice couldn’t load.</h1><p style="margin:16px 0">Check your connection, then try again. Your saved progress is kept in this browser.</p><button class="primary" id="retry-load">Try again</button></div>';
