@@ -19,8 +19,33 @@ export function shuffle(values, random = Math.random) {
   }
   return result;
 }
+export const QUESTION_TYPES = {
+  single: { label: 'Multiple choice', rule: 'Select one answer.' },
+  multiple: { label: 'Multiple response', rule: 'Select exactly two answers.' },
+  ordering: { label: 'Ordering', rule: 'Tap the items in the correct order.' },
+  matching: { label: 'Matching', rule: 'Choose the correct option for each item. Each option is used at least once.' },
+};
+const inOrder = question => question.type === 'ordering' || question.type === 'matching';
 export function isCorrect(question, selected = []) {
+  if (inOrder(question)) return selected.length === question.answers.length && question.answers.every((answer, i) => selected[i] === answer);
   return selected.length === question.answers.length && new Set(selected).size === selected.length && selected.every(i => question.answers.includes(i));
+}
+export function isComplete(question, selected = []) {
+  if (question.type === 'matching') return selected.length === question.prompts.length && selected.every(Number.isInteger);
+  return selected.length === question.answers.length;
+}
+export function hasSelection(selected = []) { return selected.some(i => Number.isInteger(i)); }
+export function validSelection(question, selected) {
+  if (!Array.isArray(selected)) return false;
+  const option = i => Number.isInteger(i) && i >= 0 && i < question.options.length;
+  if (question.type === 'matching') return selected.length <= question.prompts.length && selected.every(i => i === null || option(i));
+  return selected.length <= question.answers.length && new Set(selected).size === selected.length && selected.every(option);
+}
+function optionOrder(question, random = Math.random) {
+  const order = shuffle(question.options.map((_, i) => i), random);
+  // Never present ordering items already in the correct sequence.
+  if (question.type === 'ordering' && order.every((v, i) => v === question.answers[i])) order.push(order.shift());
+  return order;
 }
 export function quotas(count) {
   const rows = DOMAINS.map(d => ({ domain: d.id, count: Math.floor(count * d.weight / 100), fraction: count * d.weight / 100 % 1 }));
@@ -51,7 +76,7 @@ export function makeSession(bank, mode, domain, stats = {}, now = Date.now()) {
   if (!questions.length) throw new Error('There are no questions to review yet.');
   return {
     id: `${now}-${Math.random().toString(36).slice(2, 9)}`, mode, domain: mode === 'mock' ? 0 : domain,
-    ids: questions.map(q => q.id), orders: Object.fromEntries(questions.map(q => [q.id, shuffle(q.options.map((_, i) => i))])),
+    ids: questions.map(q => q.id), orders: Object.fromEntries(questions.map(q => [q.id, optionOrder(q)])),
     answers: {}, checked: {}, flagged: {}, guessed: {}, index: 0, startedAt: now,
     deadline: mode === 'mock' ? now + 90 * 60 * 1000 : null,
     previouslySeen: questions.filter(q => stats[q.id]).length,
@@ -66,7 +91,7 @@ export function scoreSession(session, bank) {
     return { id, domain: question.domain, selected: [...selected], correct: isCorrect(question, selected), guessed: !!session.guessed[id], flagged: !!session.flagged[id] };
   });
   const correct = rows.filter(r => r.correct).length;
-  return { correct, total: rows.length, percent: Math.round(correct / rows.length * 100), unanswered: rows.filter(r => !r.selected.length).length, rows };
+  return { correct, total: rows.length, percent: Math.round(correct / rows.length * 100), unanswered: rows.filter(r => !hasSelection(r.selected)).length, rows };
 }
 export function applyResult(previousStats, result, now = Date.now()) {
   const stats = { ...previousStats };
@@ -82,10 +107,18 @@ export function validateBank(bank) {
   for (const q of bank) {
     if (!q.id || ids.has(q.id) || !q.question || stems.has(q.question.trim().toLowerCase())) throw new Error('Duplicate or missing question.');
     ids.add(q.id); stems.add(q.question.trim().toLowerCase());
-    if (!DOMAINS.some(d => d.id === q.domain) || !['single', 'multiple'].includes(q.type)) throw new Error(`Invalid question ${q.id}.`);
-    if (!Array.isArray(q.options) || q.options.length !== (q.type === 'single' ? 4 : 5) || new Set(q.options).size !== q.options.length) throw new Error(`Invalid options ${q.id}.`);
-    if (!Array.isArray(q.answers) || q.answers.length !== (q.type === 'single' ? 1 : 2) || new Set(q.answers).size !== q.answers.length || q.answers.some(i => !Number.isInteger(i) || i < 0 || i >= q.options.length)) throw new Error(`Invalid answers ${q.id}.`);
-    if (!Array.isArray(q.explanations) || q.explanations.length !== q.options.length || q.explanations.some(s => !s) || !q.takeaway) throw new Error(`Missing explanation ${q.id}.`);
+    if (!DOMAINS.some(d => d.id === q.domain) || !QUESTION_TYPES[q.type]) throw new Error(`Invalid question ${q.id}.`);
+    const unique = list => Array.isArray(list) && new Set(list).size === list.length && list.every(Boolean);
+    const option = i => Number.isInteger(i) && i >= 0 && i < q.options.length;
+    const optionCount = { single: [4, 4], multiple: [5, 5], ordering: [3, 6], matching: [2, 6] }[q.type];
+    if (!unique(q.options) || q.options.length < optionCount[0] || q.options.length > optionCount[1]) throw new Error(`Invalid options ${q.id}.`);
+    if (q.type === 'matching' && (!unique(q.prompts) || q.prompts.length < 3 || q.prompts.length > 7)) throw new Error(`Invalid prompts ${q.id}.`);
+    const answerCount = { single: 1, multiple: 2, ordering: q.options.length, matching: q.prompts?.length }[q.type];
+    const answersOk = Array.isArray(q.answers) && q.answers.length === answerCount && q.answers.every(option)
+      && (q.type === 'matching' ? new Set(q.answers).size === q.options.length : new Set(q.answers).size === q.answers.length);
+    if (!answersOk) throw new Error(`Invalid answers ${q.id}.`);
+    const explained = q.type === 'matching' ? q.prompts.length : q.options.length;
+    if (!Array.isArray(q.explanations) || q.explanations.length !== explained || q.explanations.some(s => !s) || !q.takeaway) throw new Error(`Missing explanation ${q.id}.`);
     if (!isAwsSource(q.source)) throw new Error(`Invalid source ${q.id}.`);
   }
   return true;
@@ -96,7 +129,7 @@ export function isAwsSource(value) {
     return url.protocol === 'https:' && (url.hostname === 'aws.amazon.com' || url.hostname.endsWith('.aws.amazon.com'));
   } catch { return false; }
 }
-export const STUDY_KINDS = { service: 'AWS services', concept: 'Exam concepts' };
+export const STUDY_KINDS = { service: 'AWS services', concept: 'Exam concepts', strategy: 'Exam strategy' };
 export function validateSyllabus(syllabus) {
   const text = value => typeof value === 'string' && value.trim().length > 0;
   if (!syllabus || !Array.isArray(syllabus.sections) || !syllabus.sections.length) throw new Error('The study checklist could not be loaded.');
@@ -141,6 +174,6 @@ export function validSession(s, bank) {
   if (!s.orders || !s.answers || !s.checked || !s.flagged || !s.guessed) return false;
   return s.ids.every(id => {
     const q = byId.get(id), order = s.orders[id], answers = s.answers[id] || [];
-    return q && Array.isArray(order) && order.length === q.options.length && new Set(order).size === order.length && order.every(i => Number.isInteger(i) && i >= 0 && i < q.options.length) && Array.isArray(answers) && new Set(answers).size === answers.length && answers.every(i => Number.isInteger(i) && i >= 0 && i < q.options.length) && answers.length <= q.answers.length;
+    return q && Array.isArray(order) && order.length === q.options.length && new Set(order).size === order.length && order.every(i => Number.isInteger(i) && i >= 0 && i < q.options.length) && validSelection(q, answers);
   });
 }

@@ -1,4 +1,4 @@
-import { DOMAINS, MODES, STUDY_KINDS, makeSession, scoreSession, applyResult, isCorrect, needsReview, validateBank, validSession, validateSyllabus, studyProgress, filterStudy } from './engine.mjs';
+import { DOMAINS, MODES, STUDY_KINDS, QUESTION_TYPES, makeSession, scoreSession, applyResult, isCorrect, isComplete, hasSelection, validSelection, needsReview, validateBank, validSession, validateSyllabus, studyProgress, filterStudy } from './engine.mjs';
 
 const main = document.querySelector('main');
 const STORAGE = 'ai-practitioner-practice-v1';
@@ -27,7 +27,7 @@ function focusMain() { main.focus({ preventScroll: true }); window.scrollTo({ to
 function domainName(id) { return DOMAINS.find(d => d.id === id)?.short || 'All exam domains'; }
 function statEntries() { return Object.entries(state.stats); }
 function reviewIds() { return bank.filter(q => needsReview(state.stats[q.id])).map(q => q.id); }
-function answered(s) { return s.ids.filter(id => (s.answers[id] || []).length === byId.get(id).answers.length).length; }
+function answered(s) { return s.ids.filter(id => isComplete(byId.get(id), s.answers[id] || [])).length; }
 function render(focus = false) {
   main.innerHTML = (storageFailed ? '<div class="notification">Progress cannot be saved in this browser. Keep this page open while you practise.</div>' : '') + (notice ? `<div class="notification">${escape(notice)}</div>` : '') + (view === 'quiz' ? quizHTML() : view === 'result' ? resultsHTML() : view === 'study' && syllabus ? studyHTML() : homeHTML());
   if (focus) focusMain();
@@ -51,27 +51,55 @@ function homeHTML() {
     return `<div class="domain-item"><div class="domain-top"><span>0${d.id}</span><span>${d.weight}% of exam</span></div><h3>${escape(d.short)}</h3><div class="track" aria-label="${attempted.length} of ${items.length} questions tried"><span style="width:${pct(attempted.length, items.length)}%"></span></div><p class="domain-count">${attempted.length} / ${items.length} questions tried</p></div>`;
   }).join('')}</div>
   ${state.history.length ? `<div class="section-row"><h2>Recent sessions</h2><span>Latest ${Math.min(5, state.history.length)}</span></div><section class="panel history">${state.history.slice(0, 5).map(r => `<div class="history-row"><div><strong>${escape(MODES[r.mode].title)}</strong><span>${new Date(r.completedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · ${r.total} questions · ${escape(domainName(r.domain))}</span></div><button data-action="history" data-id="${escape(r.id)}" aria-label="Review ${escape(MODES[r.mode].title)} result, ${r.percent} percent">${r.percent}%<span>Review →</span></button></div>`).join('')}</section>` : ''}
-  <p class="bottom-note">Original single-choice and multi-select practice. The real exam can also include ordering and matching. Mocks draw from this same bank; repeat questions are identified at the start.</p>`;
+  <p class="bottom-note">Multiple choice, multiple response, ordering and matching questions, as on the real exam. Mocks draw from this same bank; repeat questions are identified at the start.</p>`;
 }
 function quizHTML() {
   const s = state.active, q = byId.get(s.ids[s.index]), selected = s.answers[q.id] || [], checked = !!s.checked[q.id] && s.mode !== 'mock';
-  const completed = s.ids.filter(id => s.mode === 'mock' ? (s.answers[id] || []).length === byId.get(id).answers.length : s.checked[id]).length;
+  const completed = s.ids.filter(id => s.mode === 'mock' ? isComplete(byId.get(id), s.answers[id] || []) : s.checked[id]).length;
   return `<div class="subnav"><button class="text-button" data-action="home">← Save & exit</button><div class="session-badge"><span>${escape(MODES[s.mode].title)}</span>${s.deadline ? '<span id="clock" class="clock" role="timer" aria-label="Time remaining"></span>' : '<span class="clock">Untimed</span>'}</div></div>
-  <div class="quiz-grid"><section class="panel question-panel" aria-label="Practice question"><div class="question-meta"><span class="tag">${escape(domainName(q.domain))}</span><span>${escape(q.difficulty)} · ${escape(q.id.toUpperCase())}</span></div>
-  <h1 class="question-heading" id="question-heading">${escape(q.question)}</h1><p class="question-rule">${q.type === 'multiple' ? 'Select exactly two answers.' : 'Select one answer.'} <span class="muted">Question ${s.index + 1} of ${s.ids.length}</span></p>
-  <fieldset class="options" aria-labelledby="question-heading"><legend class="sr-only">Answer options</legend>${s.orders[q.id].map((index, position) => `<label class="option ${checked && q.answers.includes(index) ? 'correct' : checked && selected.includes(index) ? 'incorrect' : ''}"><input type="${q.type === 'single' ? 'radio' : 'checkbox'}" name="answer" value="${index}" ${selected.includes(index) ? 'checked' : ''} ${checked ? 'disabled' : ''}><span class="letter" aria-hidden="true">${String.fromCharCode(65 + position)}</span><span class="option-text">${escape(q.options[index])}</span>${checked && q.answers.includes(index) ? '<span class="answer-mark" aria-label="Correct answer">✓</span>' : checked && selected.includes(index) ? '<span class="answer-mark" aria-label="Incorrect selection">×</span>' : ''}</label>`).join('')}</fieldset>
+  <div class="quiz-grid"><section class="panel question-panel" aria-label="Practice question"><div class="question-meta"><span class="tag">${escape(domainName(q.domain))}</span><span>${q.type === 'single' ? '' : `${escape(QUESTION_TYPES[q.type].label)} · `}${escape(q.difficulty)} · ${escape(q.id.toUpperCase())}</span></div>
+  <h1 class="question-heading" id="question-heading">${escape(q.question)}</h1><p class="question-rule">${escape(QUESTION_TYPES[q.type].rule)} <span class="muted">Question ${s.index + 1} of ${s.ids.length}</span></p>
+  ${q.type === 'ordering' ? orderingHTML(q, s, selected, checked) : q.type === 'matching' ? matchingHTML(q, s, selected, checked) : choicesHTML(q, s, selected, checked)}
   ${checked ? explanationHTML(q, selected, s.orders[q.id]) : ''}
-  <div class="question-actions"><label class="confidence"><input type="checkbox" id="guessed" ${s.guessed[q.id] ? 'checked' : ''} ${checked ? 'disabled' : ''}>I’m not sure / I guessed</label><div class="small-actions">${s.mode !== 'mock' && !checked ? `<button class="primary" id="check-answer" data-action="check" ${selected.length !== q.answers.length ? 'disabled' : ''}>Check answer</button>` : `<button class="primary" data-action="next">${s.index === s.ids.length - 1 ? (s.mode === 'mock' ? 'Review & submit' : 'Finish session') : 'Next question →'}</button>`}</div></div>
+  <div class="question-actions"><label class="confidence"><input type="checkbox" id="guessed" ${s.guessed[q.id] ? 'checked' : ''} ${checked ? 'disabled' : ''}>I’m not sure / I guessed</label><div class="small-actions">${s.mode !== 'mock' && !checked ? `<button class="primary" id="check-answer" data-action="check" ${isComplete(q, selected) ? '' : 'disabled'}>Check answer</button>` : `<button class="primary" data-action="next">${s.index === s.ids.length - 1 ? (s.mode === 'mock' ? 'Review & submit' : 'Finish session') : 'Next question →'}</button>`}</div></div>
   <div class="question-bottom"><button class="text-button" data-action="previous" ${s.index === 0 ? 'disabled' : ''}>← Previous</button><button class="text-button" data-action="flag" aria-pressed="${!!s.flagged[q.id]}">${s.flagged[q.id] ? '★ Flagged for review' : '☆ Flag for review'}</button></div>
   </section><aside class="panel question-sidebar"><h2>Your session</h2><p class="muted">${completed} of ${s.ids.length} ${s.mode === 'mock' ? 'answered' : 'checked'}</p><div class="track" style="margin-top:14px"><span style="width:${pct(completed, s.ids.length)}%"></span></div><nav class="navigator" aria-label="Question navigation">${s.ids.map((id, i) => {
-    const done = s.mode === 'mock' ? (s.answers[id] || []).length === byId.get(id).answers.length : !!s.checked[id];
+    const done = s.mode === 'mock' ? isComplete(byId.get(id), s.answers[id] || []) : !!s.checked[id];
     const wrong = done && s.mode !== 'mock' && !isCorrect(byId.get(id), s.answers[id]);
     return `<button class="nav-question ${i === s.index ? 'current' : ''} ${done ? 'answered' : ''} ${wrong ? 'wrong' : ''} ${s.flagged[id] ? 'flagged' : ''}" data-action="goto" data-index="${i}" ${i === s.index ? 'aria-current="step"' : ''} aria-label="Question ${i + 1}${done ? ', answered' : ', unanswered'}${s.flagged[id] ? ', flagged' : ''}">${i + 1}</button>`;
   }).join('')}</nav><div class="legend"><span><i class="swatch"></i>Answered</span><span><i class="swatch flag"></i>Flagged</span></div><div class="sidebar-bottom"><button class="secondary full-width" data-action="finish">${s.mode === 'mock' ? 'Submit mock' : 'Finish session'}</button><p>${s.mode === 'mock' ? 'The timer continues if you leave or refresh. Every question counts in this practice score.' : 'Use 1–5 to select options. Check each answer to read its explanation.'}</p><p>${s.previouslySeen} previously attempted · ${s.ids.length - s.previouslySeen} new</p></div></aside></div>`;
 }
+function choicesHTML(q, s, selected, checked) {
+  return `<fieldset class="options" aria-labelledby="question-heading"><legend class="sr-only">Answer options</legend>${s.orders[q.id].map((index, position) => `<label class="option ${checked && q.answers.includes(index) ? 'correct' : checked && selected.includes(index) ? 'incorrect' : ''}"><input type="${q.type === 'single' ? 'radio' : 'checkbox'}" name="answer" value="${index}" ${selected.includes(index) ? 'checked' : ''} ${checked ? 'disabled' : ''}><span class="letter" aria-hidden="true">${String.fromCharCode(65 + position)}</span><span class="option-text">${escape(q.options[index])}</span>${checked && q.answers.includes(index) ? '<span class="answer-mark" aria-label="Correct answer">✓</span>' : checked && selected.includes(index) ? '<span class="answer-mark" aria-label="Incorrect selection">×</span>' : ''}</label>`).join('')}</fieldset>`;
+}
+function orderingHTML(q, s, selected, checked) {
+  const remaining = s.orders[q.id].filter(i => !selected.includes(i));
+  const slots = q.options.map((_, position) => {
+    const i = selected[position];
+    if (i === undefined) return `<li class="order-slot empty"><span class="order-number" aria-hidden="true">${position + 1}</span><span class="muted">${position === selected.length && !checked ? 'Tap the next item below' : 'Empty'}</span></li>`;
+    const state = checked ? (q.answers[position] === i ? 'correct' : 'incorrect') : '';
+    return `<li class="order-slot ${state}"><span class="order-number" aria-hidden="true">${position + 1}</span><span class="option-text">${escape(q.options[i])}</span>${checked ? `<span class="answer-mark" aria-label="${state === 'correct' ? 'Correct position' : 'Wrong position'}">${state === 'correct' ? '✓' : '×'}</span>` : `<button class="order-remove" data-action="order-remove" data-position="${position}" aria-label="Remove ${escape(q.options[i])} from position ${position + 1}">×</button>`}</li>`;
+  }).join('');
+  return `<div class="ordering"><p class="order-label" id="order-label">Your order</p><ol class="order-slots" aria-labelledby="order-label">${slots}</ol>${!checked && remaining.length ? `<p class="order-label">Items to place</p><div class="order-items">${remaining.map((i, n) => `<button class="option order-item" data-action="order-add" data-index="${i}" aria-label="Place ${escape(q.options[i])} in position ${selected.length + 1}"><span class="letter" aria-hidden="true">${n + 1}</span><span class="option-text">${escape(q.options[i])}</span><span class="order-plus" aria-hidden="true">+</span></button>`).join('')}</div>` : ''}${!checked && selected.length ? '<button class="text-button" data-action="order-clear">Start over</button>' : ''}</div>`;
+}
+function matchingHTML(q, s, selected, checked) {
+  return `<div class="matching">${q.prompts.map((prompt, p) => {
+    const value = selected[p], state = checked ? (value === q.answers[p] ? 'correct' : 'incorrect') : '';
+    return `<div class="match-row ${state}"><label class="match-prompt" for="match-${p}">${escape(prompt)}</label><div class="match-choice"><select id="match-${p}" name="match" data-prompt="${p}" ${checked ? 'disabled' : ''}><option value="">Choose…</option>${s.orders[q.id].map(i => `<option value="${i}" ${value === i ? 'selected' : ''}>${escape(q.options[i])}</option>`).join('')}</select>${checked ? `<span class="answer-mark" aria-label="${state === 'correct' ? 'Correct' : 'Incorrect'}">${state === 'correct' ? '✓' : '×'}</span>` : ''}</div>${checked && state === 'incorrect' ? `<p class="match-correct">Correct: ${escape(q.options[q.answers[p]])}</p>` : ''}</div>`;
+  }).join('')}</div>`;
+}
+function answerText(q, selected) {
+  if (!hasSelection(selected)) return 'Unanswered';
+  if (q.type === 'ordering') return selected.map((i, n) => `${n + 1}. ${escape(q.options[i])}`).join(' → ');
+  if (q.type === 'matching') return q.prompts.map((prompt, p) => `${escape(prompt)} → ${Number.isInteger(selected[p]) ? escape(q.options[selected[p]]) : '—'}`).join(' • ');
+  return selected.map(i => escape(q.options[i])).join(' • ');
+}
 function explanationHTML(q, selected, order = q.options.map((_, i) => i)) {
   const correct = isCorrect(q, selected);
-  return `<div class="feedback ${correct ? '' : 'wrong'}"><h3>${correct ? '✓ That’s right.' : selected.length ? 'Let’s unpack this one.' : 'No answer selected.'}</h3><p>${escape(q.takeaway)}</p><div class="rationale">${order.map((i, p) => `<p><strong>${String.fromCharCode(65 + p)}. ${q.answers.includes(i) ? 'Correct' : 'Incorrect'}:</strong> ${escape(q.explanations[i])}</p>`).join('')}</div><a class="source" href="${escape(q.source)}" target="_blank" rel="noopener noreferrer">Read the AWS reference ↗</a></div>`;
+  const rationale = q.type === 'ordering' ? `<p><strong>Correct order</strong></p>${q.answers.map((i, n) => `<p><strong>${n + 1}. ${escape(q.options[i])}:</strong> ${escape(q.explanations[i])}</p>`).join('')}`
+    : q.type === 'matching' ? q.prompts.map((prompt, p) => `<p><strong>${escape(prompt)} → ${escape(q.options[q.answers[p]])}:</strong> ${escape(q.explanations[p])}</p>`).join('')
+    : order.map((i, p) => `<p><strong>${String.fromCharCode(65 + p)}. ${q.answers.includes(i) ? 'Correct' : 'Incorrect'}:</strong> ${escape(q.explanations[i])}</p>`).join('');
+  return `<div class="feedback ${correct ? '' : 'wrong'}"><h3>${correct ? '✓ That’s right.' : hasSelection(selected) ? 'Let’s unpack this one.' : 'No answer selected.'}</h3><p>${escape(q.takeaway)}</p><div class="rationale">${rationale}</div><a class="source" href="${escape(q.source)}" target="_blank" rel="noopener noreferrer">Read the AWS reference ↗</a></div>`;
 }
 function resultsHTML() {
   const r = result;
@@ -82,11 +110,11 @@ function resultsHTML() {
   <div class="section-row"><h2>Accuracy by domain</h2><span>This session</span></div><section class="panel result-domains">${DOMAINS.map(d => {
     const rows = r.rows.filter(row => row.domain === d.id), correct = rows.filter(row => row.correct).length;
     return `<div class="result-domain"><span>${escape(d.short)}</span><div class="track"><span style="width:${pct(correct, rows.length)}%"></span></div><span>${rows.length ? `${correct}/${rows.length} · ${pct(correct, rows.length)}%` : '—'}</span></div>`;
-  }).join('')}</section><p class="bottom-note">Practice accuracy is a raw percentage, not an AWS scaled score or a pass prediction. This mock uses the shared practice bank.${r.previouslySeen ? ` ${r.previouslySeen} questions had been attempted before.` : ''}</p>
+  }).join('')}</section><p class="bottom-note">Practice accuracy is a raw percentage, not an AWS scaled score or a pass prediction.${r.mode === 'mock' ? ' This mock uses the shared practice bank.' : ''}${r.previouslySeen ? ` ${r.previouslySeen} questions had been attempted before.` : ''}</p>
   <div class="review-tools"><h2>Review your answers <span class="muted">(${filtered.length})</span></h2><label class="sr-only" for="review-filter">Filter answers</label><select id="review-filter">${[['all', 'All answers'], ['incorrect', 'Incorrect & unanswered'], ['guessed', 'Guessed answers'], ['flagged', 'Flagged answers']].map(([value, label]) => `<option value="${value}" ${reviewFilter === value ? 'selected' : ''}>${label}</option>`).join('')}</select></div>
   ${filtered.length ? filtered.map(row => {
     const q = byId.get(row.id), order = r.orders[q.id] || q.options.map((_, i) => i);
-    return `<details class="review-item"><summary><span class="result-dot ${row.correct ? '' : 'wrong'}" aria-label="${row.correct ? 'Correct' : 'Incorrect'}">${row.correct ? '✓' : '×'}</span><span>${escape(q.question)}</span></summary><div class="review-body"><p class="review-answer"><strong>Your answer:</strong> ${row.selected.length ? row.selected.map(i => escape(q.options[i])).join(' • ') : 'Unanswered'}</p><p class="review-answer"><strong>Correct answer:</strong> ${q.answers.map(i => escape(q.options[i])).join(' • ')}</p><div class="rationale" style="margin-bottom:16px">${order.map((i, p) => `<p><strong>${String.fromCharCode(65 + p)}.</strong> ${escape(q.options[i])}</p>`).join('')}</div>${explanationHTML(q, row.selected, order)}</div></details>`;
+    return `<details class="review-item"><summary><span class="result-dot ${row.correct ? '' : 'wrong'}" aria-label="${row.correct ? 'Correct' : 'Incorrect'}">${row.correct ? '✓' : '×'}</span><span>${escape(q.question)}</span></summary><div class="review-body"><p class="review-answer"><strong>Your answer:</strong> ${answerText(q, row.selected)}</p><p class="review-answer"><strong>Correct answer:</strong> ${answerText(q, q.answers)}</p>${q.type === 'single' || q.type === 'multiple' ? `<div class="rationale" style="margin-bottom:16px">${order.map((i, p) => `<p><strong>${String.fromCharCode(65 + p)}.</strong> ${escape(q.options[i])}</p>`).join('')}</div>` : ''}${explanationHTML(q, row.selected, order)}</div></details>`;
   }).join('') : '<div class="panel empty">No answers in this category.</div>'}`;
 }
 function readStudy() {
@@ -102,7 +130,7 @@ function saveStudy() {
 }
 function studyCardHTML() {
   const p = studyProgress(syllabus.sections, learned);
-  return `<div class="section-row"><h2>Study checklist</h2><span>${p.done} of ${p.total} learned</span></div><section class="panel study-card" aria-label="Study checklist"><div><p>Every in-scope AWS service and exam concept, each with a one-liner, an example and an exam tip. Tick items off as you learn them.</p><div class="study-card-stats">${Object.entries(STUDY_KINDS).map(([kind, label]) => {
+  return `<div class="section-row"><h2>Study checklist</h2><span>${p.done} of ${p.total} learned</span></div><section class="panel study-card" aria-label="Study checklist"><div><p>Every in-scope AWS service and exam concept, plus exam strategy and commonly confused services. Each item has a one-liner, an example and an exam tip. Tick items off as you learn them.</p><div class="study-card-stats">${Object.entries(STUDY_KINDS).map(([kind, label]) => {
     const k = p.kinds[kind] || { done: 0, total: 0 };
     return `<div><strong>${k.done}<span> / ${k.total}</span></strong><span>${label}</span><div class="track"><span style="width:${pct(k.done, k.total)}%"></span></div></div>`;
   }).join('')}</div></div><button class="primary" data-action="study">Open checklist <span aria-hidden="true">→</span></button></section>`;
@@ -229,14 +257,24 @@ function setAnswers(selected) {
   if (s.deadline && Date.now() >= s.deadline) { finish(true); throw new Error('The mock time has expired.'); }
   const q = byId.get(s.ids[s.index]);
   if (s.checked[q.id] && s.mode !== 'mock') throw new Error('This answer has already been checked.');
-  if (!Array.isArray(selected) || selected.length > q.answers.length || new Set(selected).size !== selected.length || selected.some(i => !Number.isInteger(i) || i < 0 || i >= q.options.length)) throw new Error(`Select up to ${q.answers.length} valid answer${q.answers.length === 1 ? '' : 's'}.`);
+  if (!validSelection(q, selected)) throw new Error(q.type === 'matching' ? `Choose one option for each of the ${q.prompts.length} items.` : q.type === 'ordering' ? `Place each of the ${q.options.length} items once.` : `Select up to ${q.answers.length} valid answer${q.answers.length === 1 ? '' : 's'}.`);
   s.answers[q.id] = [...selected]; save();
   const button = document.querySelector('#check-answer');
-  if (button) button.disabled = selected.length !== q.answers.length;
+  if (button) button.disabled = !isComplete(q, selected);
+}
+function currentQuestion() { return byId.get(state.active.ids[state.active.index]); }
+function updateOrder(change) {
+  const q = currentQuestion(), selected = [...(state.active.answers[q.id] || [])];
+  change(selected);
+  try { setAnswers(selected); } catch (error) { announce(error.message); return; }
+  render();
+  const next = main.querySelector('[data-action="order-add"]') || main.querySelector('#check-answer:not(:disabled)') || main.querySelector('[data-action="order-remove"]');
+  next?.focus({ preventScroll: true });
+  announce(selected.length ? `${selected.length} of ${q.options.length} placed.` : 'Order cleared.');
 }
 function checkAnswer() {
   const s = state.active, q = byId.get(s.ids[s.index]);
-  if (s.mode === 'mock' || (s.answers[q.id] || []).length !== q.answers.length || s.checked[q.id]) return;
+  if (s.mode === 'mock' || !isComplete(q, s.answers[q.id] || []) || s.checked[q.id]) return;
   s.checked[q.id] = true; save(); render();
   announce(isCorrect(q, s.answers[q.id]) ? 'Correct. Explanation is now shown.' : 'Incorrect. Explanation is now shown.');
   document.querySelector('[data-action="next"]')?.focus({ preventScroll: true });
@@ -260,6 +298,9 @@ main.addEventListener('click', event => {
   }
   else if (action === 'study-reset') confirmAction('Reset the study checklist?', 'Every ticked item will be cleared. Practice scores are not affected.', 'Reset checklist', () => { learned = {}; saveStudy(); render(); announce('Study checklist reset.'); }, 'Keep my progress');
   else if (action === 'check') checkAnswer();
+  else if (action === 'order-add') updateOrder(selected => selected.push(Number(button.dataset.index)));
+  else if (action === 'order-remove') updateOrder(selected => selected.splice(Number(button.dataset.position), 1));
+  else if (action === 'order-clear') updateOrder(selected => selected.splice(0));
   else if (action === 'finish') requestFinish();
   else if (action === 'next') { if (state.active.index === state.active.ids.length - 1) requestFinish(); else { state.active.index++; save(); render(true); } }
   else if (action === 'previous' || action === 'goto') { state.active.index = action === 'previous' ? state.active.index - 1 : Number(button.dataset.index); save(); render(true); }
@@ -277,6 +318,12 @@ main.addEventListener('change', event => {
   else if (input.id === 'study-status' || input.id === 'study-priority') { if (input.id === 'study-status') studyStatus = input.value; else studyPriority = input.value; renderStudyList(); }
   else if (input.id === 'review-filter') { reviewFilter = input.value; render(); document.querySelector('#review-filter')?.focus({ preventScroll: true }); }
   else if (input.id === 'guessed') { state.active.guessed[state.active.ids[state.active.index]] = input.checked; save(); }
+  else if (input.name === 'match') {
+    const q = currentQuestion(), selected = q.prompts.map((_, p) => (state.active.answers[q.id] || [])[p] ?? null);
+    selected[Number(input.dataset.prompt)] = input.value === '' ? null : Number(input.value);
+    try { setAnswers(selected); if (state.active.mode === 'mock') { const id = input.id; render(); main.querySelector(`#${id}`)?.focus({ preventScroll: true }); } }
+    catch (error) { announce(error.message); render(); }
+  }
   else if (input.name === 'answer') {
     const selected = [...main.querySelectorAll('input[name="answer"]:checked')].map(e => Number(e.value));
     try { setAnswers(selected); if (state.active.mode === 'mock') { const value = input.value; render(); main.querySelector(`input[name="answer"][value="${value}"]`)?.focus({ preventScroll: true }); } }
@@ -299,13 +346,16 @@ window.addEventListener('hashchange', () => {
 document.querySelector('.brand').addEventListener('click', event => { if (!bank.length) return; event.preventDefault(); leaveStudy(); view = 'home'; notice = ''; render(true); });
 document.addEventListener('keydown', event => {
   if (view !== 'quiz' || document.querySelector('dialog[open]') || event.altKey || event.metaKey || event.ctrlKey || event.target.matches('select,textarea,input:not([type="radio"]):not([type="checkbox"])')) return;
-  if (/^[1-5]$/.test(event.key)) { const input = main.querySelectorAll('input[name="answer"]')[Number(event.key) - 1]; if (input && !input.disabled) { event.preventDefault(); input.click(); input.focus({ preventScroll: true }); } }
+  if (/^[1-6]$/.test(event.key)) {
+    const target = main.querySelectorAll('input[name="answer"], [data-action="order-add"]')[Number(event.key) - 1];
+    if (target && !target.disabled) { event.preventDefault(); target.click(); if (target.matches('input')) target.focus({ preventScroll: true }); }
+  }
 });
 function publicState() {
   const s = state.active;
   if (!s) return { view, questionCount: bank.length, attempted: statEntries().length, reviewCount: reviewIds().length };
   const q = byId.get(s.ids[s.index]);
-  return { view, mode: s.mode, questionNumber: s.index + 1, total: s.ids.length, question: q.question, options: s.orders[q.id].map(i => ({ index: i, text: q.options[i] })), selections: s.answers[q.id] || [], selectCount: q.answers.length, checked: !!s.checked[q.id], deadline: s.deadline };
+  return { view, mode: s.mode, questionNumber: s.index + 1, total: s.ids.length, question: q.question, type: q.type, rule: QUESTION_TYPES[q.type].rule, ...(q.prompts ? { prompts: q.prompts } : {}), options: s.orders[q.id].map(i => ({ index: i, text: q.options[i] })), selections: s.answers[q.id] || [], selectCount: q.answers.length, checked: !!s.checked[q.id], deadline: s.deadline };
 }
 function registerTools() {
   const context = document.modelContext;
@@ -315,7 +365,7 @@ function registerTools() {
   const tools = [
     { name: 'get_practice_state', title: 'Read practice state', description: 'Read session progress and the current question with option indices. Does not reveal answer keys.', inputSchema: { type: 'object', properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, untrustedContentHint: false }, execute: () => publicState() },
     { name: 'start_practice_session', title: 'Start practice session', description: 'Start a quick, learning, or timed mock session. Fails if an unfinished session exists.', inputSchema: { type: 'object', properties: { mode: { type: 'string', enum: ['quick', 'learn', 'mock'] }, domain: { type: 'integer', minimum: 0, maximum: 5 } }, required: ['mode'], additionalProperties: false }, annotations: { readOnlyHint: false, untrustedContentHint: false }, execute: input => { if (!input || !['quick', 'learn', 'mock'].includes(input.mode) || !Number.isInteger(input.domain ?? 0) || (input.domain ?? 0) < 0 || (input.domain ?? 0) > 5) throw new Error('Invalid session settings.'); if (state.active) throw new Error('Finish the existing session in the app first.'); start(input.mode, input.domain ?? 0); return publicState(); } },
-    { name: 'stage_practice_answer', title: 'Select practice answer', description: 'Select option indices for the current question. Saves the selection without checking the answer or submitting the session.', inputSchema: { type: 'object', properties: { indices: { type: 'array', items: { type: 'integer', minimum: 0, maximum: 4 }, maxItems: 2, uniqueItems: true } }, required: ['indices'], additionalProperties: false }, annotations: { readOnlyHint: false, untrustedContentHint: false }, execute: input => { setAnswers(input?.indices); view = 'quiz'; render(); return publicState(); } },
+    { name: 'stage_practice_answer', title: 'Select practice answer', description: 'Select option indices for the current question. For ordering questions, list indices in the chosen order. For matching questions, give one index per prompt (null leaves it unanswered). Saves the selection without checking the answer or submitting the session.', inputSchema: { type: 'object', properties: { indices: { type: 'array', items: { type: ['integer', 'null'], minimum: 0, maximum: 5 }, maxItems: 7 } }, required: ['indices'], additionalProperties: false }, annotations: { readOnlyHint: false, untrustedContentHint: false }, execute: input => { setAnswers(input?.indices); view = 'quiz'; render(); return publicState(); } },
   ];
   for (const tool of tools) { try { Promise.resolve(context.registerTool(tool, { signal: lifecycle.signal })).catch(() => {}); } catch {} }
 }
