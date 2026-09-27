@@ -20,7 +20,7 @@ function read() {
     const saved = JSON.parse(localStorage.getItem(STORAGE) || 'null');
     if (!saved || typeof saved !== 'object') return;
     const stats = Object.fromEntries(Object.entries(saved.stats || {}).filter(([id, s]) => byId.has(id) && s && Number.isFinite(s.attempts) && s.attempts > 0 && typeof s.firstCorrect === 'boolean' && typeof s.lastCorrect === 'boolean'));
-    state = { stats, history: Array.isArray(saved.history) ? saved.history.filter(r => r && MODES[r.mode] && Array.isArray(r.rows) && r.rows.length && r.rows.every(x => byId.has(x.id) && Array.isArray(x.selected)) && Number.isFinite(r.completedAt)).slice(0, 20) : [], active: validSession(saved.active, bank) ? saved.active : null };
+    state = { stats, history: Array.isArray(saved.history) ? saved.history.filter(r => r && MODES[r.mode] && Array.isArray(r.rows) && r.rows.length && r.rows.every(x => byId.has(x.id) && validSelection(byId.get(x.id), x.selected)) && Number.isFinite(r.completedAt)).slice(0, 20) : [], active: validSession(saved.active, bank) ? saved.active : null };
   } catch { storageFailed = true; }
 }
 function focusMain() { main.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); }
@@ -67,7 +67,7 @@ function quizHTML() {
     const done = s.mode === 'mock' ? isComplete(byId.get(id), s.answers[id] || []) : !!s.checked[id];
     const wrong = done && s.mode !== 'mock' && !isCorrect(byId.get(id), s.answers[id]);
     return `<button class="nav-question ${i === s.index ? 'current' : ''} ${done ? 'answered' : ''} ${wrong ? 'wrong' : ''} ${s.flagged[id] ? 'flagged' : ''}" data-action="goto" data-index="${i}" ${i === s.index ? 'aria-current="step"' : ''} aria-label="Question ${i + 1}${done ? ', answered' : ', unanswered'}${s.flagged[id] ? ', flagged' : ''}">${i + 1}</button>`;
-  }).join('')}</nav><div class="legend"><span><i class="swatch"></i>Answered</span><span><i class="swatch flag"></i>Flagged</span></div><div class="sidebar-bottom"><button class="secondary full-width" data-action="finish">${s.mode === 'mock' ? 'Submit mock' : 'Finish session'}</button><p>${s.mode === 'mock' ? 'The timer continues if you leave or refresh. Every question counts in this practice score.' : 'Use 1–5 to select options. Check each answer to read its explanation.'}</p><p>${s.previouslySeen} previously attempted · ${s.ids.length - s.previouslySeen} new</p></div></aside></div>`;
+  }).join('')}</nav><div class="legend"><span><i class="swatch"></i>Answered</span><span><i class="swatch flag"></i>Flagged</span></div><div class="sidebar-bottom"><button class="secondary full-width" data-action="finish">${s.mode === 'mock' ? 'Submit mock' : 'Finish session'}</button><p>${s.mode === 'mock' ? 'The timer continues if you leave or refresh. Every question counts in this practice score.' : `${q.type === 'matching' ? 'Choose an option for each item.' : `Use 1–${q.options.length} to ${q.type === 'ordering' ? 'place items' : 'select options'}.`} Check each answer to read its explanation.`}</p><p>${s.previouslySeen} previously attempted · ${s.ids.length - s.previouslySeen} new</p></div></aside></div>`;
 }
 function choicesHTML(q, s, selected, checked) {
   return `<fieldset class="options" aria-labelledby="question-heading"><legend class="sr-only">Answer options</legend>${s.orders[q.id].map((index, position) => `<label class="option ${checked && q.answers.includes(index) ? 'correct' : checked && selected.includes(index) ? 'incorrect' : ''}"><input type="${q.type === 'single' ? 'radio' : 'checkbox'}" name="answer" value="${index}" ${selected.includes(index) ? 'checked' : ''} ${checked ? 'disabled' : ''}><span class="letter" aria-hidden="true">${String.fromCharCode(65 + position)}</span><span class="option-text">${escape(q.options[index])}</span>${checked && q.answers.includes(index) ? '<span class="answer-mark" aria-label="Correct answer">✓</span>' : checked && selected.includes(index) ? '<span class="answer-mark" aria-label="Incorrect selection">×</span>' : ''}</label>`).join('')}</fieldset>`;
@@ -371,7 +371,7 @@ function registerTools() {
 }
 async function boot() {
   try {
-    const [response, studyResponse] = await Promise.all([fetch('./questions.json'), fetch('./syllabus.json').catch(() => null)]);
+    const [response, studyResponse] = await Promise.all([fetch('./questions.json', { cache: 'no-cache' }), fetch('./syllabus.json', { cache: 'no-cache' }).catch(() => null)]);
     if (!response.ok) throw new Error('Question download failed.');
     bank = await response.json(); validateBank(bank); byId = new Map(bank.map(q => [q.id, q]));
     try {

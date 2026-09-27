@@ -5719,19 +5719,19 @@
     "type": "single",
     "question": "A team has a small tabular dataset of 5,000 loan records and must explain each prediction to regulators. Why is a traditional ML model, such as a decision tree ensemble, often a better starting point than a deep neural network here?",
     "options": [
-      "Deep learning models can only be trained on GPUs in SageMaker AI.",
+      "Deep neural networks can't be hosted on SageMaker AI real-time endpoints.",
       "Deep neural networks cannot process numeric, tabular data reliably.",
       "Traditional models suit small structured data and are easier to explain.",
-      "Traditional ML models always achieve higher accuracy than deep learning."
+      "Deep neural networks can't output probability scores for approvals."
     ],
     "answers": [
       2
     ],
     "explanations": [
-      "Hardware choice is not the deciding factor for this use case.",
+      "SageMaker AI hosts both kinds of model, so hosting isn't the deciding factor.",
       "Neural networks handle numeric data well; this is not the reason.",
       "Deep learning shines with large, unstructured data; small tabular data with explainability requirements usually favors traditional models.",
-      "Neither approach is always more accurate; it depends on the data and task."
+      "Neural networks can output class probabilities; this isn't the reason."
     ],
     "takeaway": "Small, structured data + explainability → traditional ML. Large, unstructured data → deep learning.",
     "source": "https://aws.amazon.com/what-is/deep-learning/"
@@ -5956,30 +5956,27 @@
     "type": "ordering",
     "question": "Put these steps of an ML project that predicts customer churn in the correct order, from FIRST to LAST.",
     "options": [
-      "Evaluate the model on held-out data",
-      "Train and tune the model",
-      "Collect and label historical customer data",
+      "Train and tune the model, then evaluate it on held-out data",
       "Prepare the data and engineer features",
+      "Collect and label historical customer data",
       "Deploy the model and monitor it in production",
       "Define the business goal and how success will be measured"
     ],
     "answers": [
-      5,
+      4,
       2,
-      3,
       1,
       0,
-      4
+      3
     ],
     "explanations": [
-      "Evaluation on unseen data comes after training and before deployment.",
-      "Training uses the prepared features.",
-      "Labeled historical data (who churned) is gathered once the goal is clear.",
+      "Training uses the prepared features, and evaluation on unseen data comes before deployment.",
       "Data is cleaned and transformed into features before training.",
+      "Labeled historical data (who churned) is gathered once the goal is clear.",
       "Only an evaluated model is deployed, and monitoring continues afterward.",
       "Every ML project starts by framing the business problem and success metrics."
     ],
-    "takeaway": "Frame → collect → prepare → train → evaluate → deploy and monitor.",
+    "takeaway": "Frame → collect → prepare → train and evaluate → deploy and monitor.",
     "source": "https://docs.aws.amazon.com/wellarchitected/latest/machine-learning-lens/machine-learning-lens.html"
   },
   {
@@ -6231,7 +6228,7 @@
     "options": [
       "To encrypt each part of the document separately with its own key",
       "So retrieval returns focused passages that fit in the model's context",
-      "To guarantee that the model never hallucinates about the documents",
+      "To reduce the number of tokens billed by the embeddings model",
       "To reduce the storage cost of the original documents in Amazon S3"
     ],
     "answers": [
@@ -6240,7 +6237,7 @@
     "explanations": [
       "Chunking is not an encryption technique.",
       "Smaller passages match questions more precisely and keep the prompt within the context window.",
-      "Chunking improves retrieval but can't guarantee accuracy.",
+      "The same text (plus any overlap) is still embedded, so chunking doesn't cut embedding cost.",
       "The original documents are usually kept; chunking isn't about storage."
     ],
     "takeaway": "Chunking makes retrieval precise and context-sized.",
@@ -6279,17 +6276,17 @@
     "type": "single",
     "question": "Which characteristic distinguishes a foundation model from a traditional, task-specific ML model?",
     "options": [
-      "It can only produce yes/no classifications.",
-      "It always runs on customer-managed EC2 instances.",
+      "It is trained on labeled data for a single, well-defined task.",
+      "It produces explainable predictions from a small set of features.",
       "It is pre-trained on broad data and adapts to many tasks.",
-      "It is trained only on one company's private data for accuracy."
+      "It is trained mainly on one company's private data."
     ],
     "answers": [
       2
     ],
     "explanations": [
-      "That describes a narrow classifier, the opposite of an FM.",
-      "FMs can be accessed as managed services such as Amazon Bedrock.",
+      "That describes a traditional, task-specific model, the opposite of an FM.",
+      "That describes an interpretable traditional model, not an FM.",
       "FMs learn general capabilities from large, diverse data, so one model can summarize, answer questions, translate, and more.",
       "FMs are typically pre-trained on broad public data; private data is added later with RAG or fine-tuning."
     ],
@@ -6880,7 +6877,7 @@
     "question": "Which is an advantage of building generative AI applications with managed AWS services such as Amazon Bedrock instead of training and hosting your own model?",
     "options": [
       "Faster time to market using pre-trained models through an API",
-      "The managed models never produce incorrect answers.",
+      "The provider evaluates output quality for each customer use case.",
       "Costs are fixed each month regardless of usage.",
       "The company no longer needs to secure its own data or access."
     ],
@@ -6889,7 +6886,7 @@
     ],
     "explanations": [
       "Using existing FMs through an API removes training and hosting work.",
-      "Managed models can still hallucinate.",
+      "Customers still evaluate models for their own use cases, because managed models can still be wrong.",
       "On-demand usage is billed per token, so costs vary.",
       "Under the shared responsibility model, customers still secure their data and access."
     ],
@@ -7057,7 +7054,7 @@
       "LLMs refuse to answer financial questions because of built-in safety filters.",
       "LLMs cannot reliably process numeric inputs such as incomes and credit scores.",
       "Their reasoning can't be traced, and self-explanations may not be faithful.",
-      "LLMs are only available in a few AWS Regions, which prevents regulated use."
+      "LLM outputs can't be logged, so decisions can't be stored for audit."
     ],
     "answers": [
       2
@@ -7066,7 +7063,7 @@
       "LLMs can answer finance questions.",
       "LLMs can process numbers; that isn't the issue.",
       "LLM decisions come from billions of parameters, so faithful explanations are hard to provide.",
-      "Regional availability is unrelated to explainability."
+      "Model invocation logging can store prompts and responses; logging isn't the issue."
     ],
     "takeaway": "Faithful explanations required → interpretable models, not LLM self-explanations.",
     "source": "https://aws.amazon.com/ai/responsible-ai/"
@@ -7080,10 +7077,10 @@
     "question": "A company is deciding whether to use generative AI to answer customer billing questions. Which TWO risks should it plan for? (Select TWO.)",
     "options": [
       "Answers to the same question may vary between requests.",
-      "The model can only respond in English.",
+      "The model will store each customer's billing data in its weights.",
       "The model may give confident but incorrect answers.",
       "The model will automatically know each customer's current bill.",
-      "The model cannot be accessed through an API."
+      "The company must manage its own GPU cluster to serve answers."
     ],
     "answers": [
       0,
@@ -7091,10 +7088,10 @@
     ],
     "explanations": [
       "Nondeterminism can produce inconsistent answers.",
-      "Many models support multiple languages.",
+      "Inference doesn't change model weights; prompts aren't learned by the model.",
       "Hallucinations are a key risk for customer-facing answers.",
       "Private, current data must be supplied through RAG or tools.",
-      "FMs are commonly accessed through APIs such as Amazon Bedrock."
+      "Managed services such as Amazon Bedrock need no GPU management."
     ],
     "takeaway": "Plan for hallucination, nondeterminism, and missing private data.",
     "source": "https://aws.amazon.com/what-is/generative-ai/"
@@ -7504,7 +7501,7 @@
       "Send each ticket without instructions",
       "Fine-tune a model on past summaries written by the team",
       "Use a template with fixed instructions and a variable for the ticket",
-      "Increase the temperature so the model varies its structure less"
+      "Switch to a model with a larger context window for longer tickets"
     ],
     "answers": [
       2
@@ -7513,7 +7510,7 @@
       "Without instructions, the output structure will vary.",
       "Fine-tuning is costlier and slower than a template for enforcing structure.",
       "Templates keep the instructions and format identical while only the ticket changes.",
-      "Higher temperature increases variation."
+      "Context size doesn't enforce a consistent structure."
     ],
     "takeaway": "Same instructions, changing input → prompt template.",
     "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html"
@@ -8226,8 +8223,8 @@
     "type": "single",
     "question": "Why can a pre-trained model often be fine-tuned well with a relatively small dataset?",
     "options": [
-      "Small datasets always produce more accurate models.",
-      "Fine-tuning replaces all of the model's weights with new random values.",
+      "Fine-tuning adjusts inference settings such as temperature, not weights.",
+      "The small dataset is added to the prompt at inference time.",
       "It reuses general knowledge learned during pre-training (transfer learning).",
       "The model memorizes the dataset exactly."
     ],
@@ -8235,8 +8232,8 @@
       2
     ],
     "explanations": [
-      "Dataset size alone doesn't guarantee accuracy.",
-      "Fine-tuning starts from the pre-trained weights.",
+      "Fine-tuning updates weights; temperature is set at inference time.",
+      "That describes in-context learning or RAG, not fine-tuning.",
       "Only task-specific adjustments must be learned from the new data.",
       "Memorizing would cause overfitting, not good results."
     ],
@@ -8453,7 +8450,7 @@
     "options": [
       "The model's weights are permanently updated with company data",
       "No embeddings model is needed",
-      "Hallucinations become impossible",
+      "Changed documents are retrieved without a data source sync",
       "Answers can use the latest company documents without retraining the model",
       "Responses can include citations to source documents"
     ],
@@ -8464,7 +8461,7 @@
     "explanations": [
       "RAG doesn't change model weights.",
       "Knowledge bases use an embeddings model.",
-      "RAG reduces hallucinations but can't eliminate them.",
+      "Changed documents must be synced before they can be retrieved.",
       "Updated documents are available after a sync.",
       "Citations let users verify answers."
     ],
@@ -8480,7 +8477,7 @@
     "question": "An agent can read emails and send messages on behalf of users. Which TWO controls BEST limit the damage of a successful prompt injection? (Select TWO.)",
     "options": [
       "Require user confirmation before the agent sends any message",
-      "Raise the temperature",
+      "Use a larger model that follows instructions more reliably",
       "Give the agent's tools only the minimum permissions they need",
       "Increase the model's context window",
       "Tell the model in its system prompt to ignore instructions in emails"
@@ -8491,7 +8488,7 @@
     ],
     "explanations": [
       "A human check stops injected instructions from triggering actions silently.",
-      "Temperature doesn't affect security.",
+      "Stronger models can still be injected; this doesn't limit the damage.",
       "Least privilege limits what an attacker can make the agent do.",
       "Context size doesn't reduce injection risk.",
       "Prompt instructions alone can be overridden."
@@ -9500,30 +9497,27 @@
     "type": "ordering",
     "question": "Put these steps for responsibly launching a hiring model in the correct order.",
     "options": [
-      "Document the results in a SageMaker Model Card",
+      "Train the model, then measure subgroup performance and bias with SageMaker Clarify",
       "Define fairness requirements and the metrics to measure them",
-      "Train the model",
       "Deploy and monitor for bias drift",
       "Audit the training data for representation and label quality",
-      "Measure subgroup performance and bias with SageMaker Clarify"
+      "Document the results in a SageMaker Model Card"
     ],
     "answers": [
       1,
-      4,
-      2,
-      5,
+      3,
       0,
-      3
+      4,
+      2
     ],
     "explanations": [
-      "Record intended use, results, and limitations.",
+      "Fairness is evaluated on the trained model before launch.",
       "Requirements and metrics come first.",
-      "Training follows the data audit.",
       "Monitoring continues after launch.",
       "Check data before training.",
-      "Evaluate fairness before launch."
+      "Record intended use, results, and limitations."
     ],
-    "takeaway": "Define → audit data → train → measure bias → document → deploy and monitor.",
+    "takeaway": "Define → audit data → train and measure bias → document → deploy and monitor.",
     "source": "https://docs.aws.amazon.com/sagemaker/latest/dg/clarify-detect-data-bias.html"
   },
   {

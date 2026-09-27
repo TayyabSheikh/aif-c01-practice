@@ -110,7 +110,7 @@ export function validateBank(bank) {
     if (!DOMAINS.some(d => d.id === q.domain) || !QUESTION_TYPES[q.type]) throw new Error(`Invalid question ${q.id}.`);
     const unique = list => Array.isArray(list) && new Set(list).size === list.length && list.every(Boolean);
     const option = i => Number.isInteger(i) && i >= 0 && i < q.options.length;
-    const optionCount = { single: [4, 4], multiple: [5, 5], ordering: [3, 6], matching: [2, 6] }[q.type];
+    const optionCount = { single: [4, 4], multiple: [5, 5], ordering: [3, 5], matching: [2, 6] }[q.type];
     if (!unique(q.options) || q.options.length < optionCount[0] || q.options.length > optionCount[1]) throw new Error(`Invalid options ${q.id}.`);
     if (q.type === 'matching' && (!unique(q.prompts) || q.prompts.length < 3 || q.prompts.length > 7)) throw new Error(`Invalid prompts ${q.id}.`);
     const answerCount = { single: 1, multiple: 2, ordering: q.options.length, matching: q.prompts?.length }[q.type];
