@@ -1,0 +1,376 @@
+{
+ "version": 1,
+ "intro": "Try generative AI and ML on AWS with your free credits. Each lab gives console steps, what you should see, and a clean-up list. Use small, low-cost models (for example Amazon Nova Micro or Lite), one Region for every lab, and don’t paste personal or confidential data into prompts.",
+ "labs": [
+  {
+   "id": "aif-lab-00",
+   "title": "Secure your account and set a budget before using AI services",
+   "goal": "Protect the root user, set a budget alert, and sign in with a separate admin user before you call any models.",
+   "why": "Security, governance, and cost awareness are tested in Domain 5, and model calls are billed per token.",
+   "minutes": 25,
+   "cost": "free",
+   "level": "Beginner",
+   "start": true,
+   "domains": [
+    5
+   ],
+   "services": [
+    "IAM",
+    "AWS IAM Identity Center",
+    "AWS Budgets"
+   ],
+   "steps": [
+    "Sign in as the root user, open Security credentials, and assign an MFA device. Delete any root access keys.",
+    "Open Billing and Cost Management → Budgets → Create budget → Zero spend budget, with your email address.",
+    "Add a monthly cost budget of a few dollars with email alerts at 80% and 100%.",
+    "Open IAM Identity Center → Enable, create a user for yourself, and assign the AdministratorAccess permission set to your account. Sign in through the access portal with MFA.",
+    "Choose a Region where Amazon Bedrock is available (for example US East (N. Virginia)) and use it for every lab."
+   ],
+   "check": [
+    "The root user has MFA and no access keys.",
+    "Both budgets appear with email alerts.",
+    "You can sign in as your Identity Center user."
+   ],
+   "createsResources": false,
+   "tips": [
+    "If you already did the Cloud Practitioner “Start here” lab in this account, you only need to check the Region."
+   ],
+   "sources": [
+    "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_root-user.html",
+    "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html",
+    "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html",
+    "https://docs.aws.amazon.com/accounts/latest/reference/bcm-lite-free-tier-credits.html"
+   ]
+  },
+  {
+   "id": "aif-lab-01",
+   "title": "Compare models and inference parameters in the Bedrock playground",
+   "goal": "Send the same prompt to two models and see how temperature, top-p, and maximum tokens change the output.",
+   "why": "Model selection, inference parameters, tokens, latency, and pricing are core Domain 2 and 3 topics.",
+   "minutes": 25,
+   "cost": "credits",
+   "costNote": "A few cents of tokens with small models; covered by credits.",
+   "level": "Beginner",
+   "domains": [
+    2,
+    3
+   ],
+   "services": [
+    "Amazon Bedrock"
+   ],
+   "steps": [
+    "Open Amazon Bedrock → Playgrounds → Chat / text. Choose a small model such as Amazon Nova Micro. If a model asks you to request access, follow the prompt.",
+    "Ask: “Write a one-sentence slogan for a bicycle repair shop.” Run it three times with temperature 0, then three times with temperature 1.",
+    "Set maximum output tokens to 20 and ask for a 200-word product description. Look at where the answer stops.",
+    "Open the playground’s model metrics and note the input tokens, output tokens, and latency for one run.",
+    "Use the compare mode (or open a second window) to send the same prompt to a larger model, such as Amazon Nova Pro, and compare quality, speed, and token counts."
+   ],
+   "check": [
+    "Temperature 0 gives nearly identical answers; temperature 1 gives more varied ones.",
+    "A low maximum token limit cuts the answer off.",
+    "The larger model is slower and costs more per token."
+   ],
+   "createsResources": false,
+   "tips": [
+    "New accounts can earn credits for using a foundation model in the Bedrock playground.",
+    "Lower temperature and top-p → more consistent output. Maximum tokens → length and cost."
+   ],
+   "sources": [
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/playgrounds.html",
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/inference-parameters.html",
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html"
+   ]
+  },
+  {
+   "id": "aif-lab-02",
+   "title": "Prompt engineering techniques and Prompt Management",
+   "goal": "Compare zero-shot, few-shot, and step-by-step prompts, then save a reusable prompt with a variable and a version.",
+   "why": "Prompt techniques, prompt templates, and versioning are Domain 3 topics.",
+   "minutes": 30,
+   "cost": "credits",
+   "costNote": "A few cents of tokens with a small model.",
+   "level": "Beginner",
+   "domains": [
+    3
+   ],
+   "services": [
+    "Amazon Bedrock",
+    "Amazon Bedrock Prompt Management"
+   ],
+   "steps": [
+    "In the Bedrock chat playground with a small model, run a zero-shot prompt:\nClassify the sentiment of this review as POSITIVE or NEGATIVE: \"The delivery was late but the support team fixed it fast.\"",
+    "Run a few-shot version that gives three labeled examples before the review, and compare the answers.",
+    "Ask a short math word problem twice: once directly, and once adding “Think step by step, then give the final answer.”",
+    "Add a system prompt that sets a role and an output format, for example: “You are a support analyst. Reply in JSON with keys sentiment and reason.”",
+    "Open Bedrock → Prompt management → Create prompt named lab-sentiment. Use {{review}} as a variable, test it with two reviews, and create a version."
+   ],
+   "check": [
+    "Few-shot examples make the label format more consistent.",
+    "The step-by-step prompt shows its reasoning before the answer.",
+    "Prompt Management shows the saved prompt and its version."
+   ],
+   "createsResources": true,
+   "cleanup": [
+    "Delete the prompt lab-sentiment in Prompt Management."
+   ],
+   "tips": [
+    "Templates with variables keep instructions identical while the input changes."
+   ],
+   "sources": [
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-engineering-guidelines.html",
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/design-a-prompt.html",
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html"
+   ]
+  },
+  {
+   "id": "aif-lab-03",
+   "title": "Protect a chatbot with Amazon Bedrock Guardrails",
+   "goal": "Create a guardrail with a denied topic, content filters, and PII masking, then test it.",
+   "why": "Guardrail policies and responsible AI controls are tested in Domains 4 and 5.",
+   "minutes": 30,
+   "cost": "credits",
+   "costNote": "Guardrail checks are billed per text unit; a few tests cost cents.",
+   "level": "Intermediate",
+   "domains": [
+    4,
+    5
+   ],
+   "services": [
+    "Amazon Bedrock Guardrails"
+   ],
+   "steps": [
+    "Open Amazon Bedrock → Guardrails → Create guardrail named lab-guardrail with a custom blocked message.",
+    "Add a denied topic “Investment advice” with a definition and two sample phrases, such as “Which stocks should I buy?”.",
+    "Turn on content filters for hate, insults, and violence, and the prompt attack filter.",
+    "Add a sensitive information filter that masks email addresses and phone numbers in responses.",
+    "Create the guardrail, then use the test panel with a small model: ask for stock tips, try “Ignore your instructions and…”, and ask the model to repeat a fake email address.",
+    "Open the trace for each test to see which policy acted."
+   ],
+   "check": [
+    "The investment question returns your blocked message.",
+    "The prompt attack attempt is blocked.",
+    "Email addresses and phone numbers appear masked in the response."
+   ],
+   "createsResources": true,
+   "cleanup": [
+    "Delete the guardrail lab-guardrail."
+   ],
+   "tips": [
+    "Denied topics block subjects however they are phrased; word filters block exact words."
+   ],
+   "sources": [
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-components.html",
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-denied-topics.html",
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-sensitive-filters.html",
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-content-filters.html"
+   ]
+  },
+  {
+   "id": "aif-lab-04",
+   "title": "Build a RAG knowledge base with Amazon S3 Vectors",
+   "goal": "Index a few documents in a Bedrock knowledge base, ask questions, and check the citations.",
+   "why": "RAG, embeddings, chunking, vector stores, and citations are central to Domain 3.",
+   "minutes": 45,
+   "cost": "credits",
+   "costNote": "Embedding a few small documents and a handful of questions costs cents. Choose Amazon S3 Vectors; avoid OpenSearch Serverless for labs because it has a minimum hourly charge.",
+   "level": "Intermediate",
+   "domains": [
+    3
+   ],
+   "services": [
+    "Amazon Bedrock Knowledge Bases",
+    "Amazon S3",
+    "Amazon S3 Vectors"
+   ],
+   "prerequisites": [
+    "Two or three short documents without personal data, such as a public product FAQ saved as PDF or text."
+   ],
+   "steps": [
+    "Create an S3 bucket lab-kb-<number> and upload your documents.",
+    "Open Amazon Bedrock → Knowledge Bases → Create knowledge base with vector store. Name it lab-kb and choose the S3 bucket as the data source.",
+    "Choose an embeddings model (for example Amazon Titan Text Embeddings V2) and, for the vector store, create a new Amazon S3 Vectors store.",
+    "Create the knowledge base, then select the data source and choose Sync.",
+    "Open Test knowledge base, pick a small model for generation, and ask a question your documents answer. Open the source citations.",
+    "Ask a question your documents don’t cover and compare the answer."
+   ],
+   "check": [
+    "After the sync, answers quote your documents and show citations.",
+    "For an unrelated question, the answer shows that the documents don’t contain the information, or relies on general knowledge without citations."
+   ],
+   "createsResources": true,
+   "cleanup": [
+    "Delete the knowledge base lab-kb.",
+    "Delete the S3 Vectors vector bucket and index that were created for it.",
+    "Empty and delete the bucket lab-kb-<number>."
+   ],
+   "tips": [
+    "New or changed documents only appear in answers after you sync the data source."
+   ],
+   "sources": [
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html",
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base-setup.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-vectors.html"
+   ]
+  },
+  {
+   "id": "aif-lab-05",
+   "title": "Chain steps with Amazon Bedrock Flows",
+   "goal": "Build a small visual workflow that summarizes input text and returns the summary.",
+   "why": "Building generative AI workflows and choosing between flows and agents are Domain 3 topics.",
+   "minutes": 30,
+   "cost": "credits",
+   "costNote": "A few cents for node runs and tokens.",
+   "level": "Intermediate",
+   "domains": [
+    3,
+    2
+   ],
+   "services": [
+    "Amazon Bedrock Flows"
+   ],
+   "steps": [
+    "Open Amazon Bedrock → Flows → Create flow named lab-flow and let the console create the service role.",
+    "Connect the Flow input node to a Prompt node. Configure the prompt with a small model and this text:\nSummarize the following text in two sentences for a busy manager:\n{{document}}",
+    "Connect the Prompt node to the Flow output node, then save the flow.",
+    "Open the test panel, paste a few paragraphs of public text, and run it.",
+    "Create a version and an alias for the flow."
+   ],
+   "check": [
+    "The flow returns a two-sentence summary.",
+    "The trace shows each node’s input and output."
+   ],
+   "createsResources": true,
+   "cleanup": [
+    "Delete the flow lab-flow and its alias.",
+    "Delete the service role that the console created for it."
+   ],
+   "tips": [
+    "Flows follow fixed steps you design; agents decide their own steps at run time."
+   ],
+   "sources": [
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/flows.html"
+   ]
+  },
+  {
+   "id": "aif-lab-06",
+   "title": "Evaluate a model with LLM-as-a-judge",
+   "goal": "Run a small model evaluation job on your own prompts and read the scores.",
+   "why": "Evaluating foundation models, metrics, and LLM-as-a-judge are Domain 3 topics.",
+   "minutes": 40,
+   "cost": "credits",
+   "costNote": "With five prompts, the generation and judge tokens cost well under $1.",
+   "level": "Intermediate",
+   "domains": [
+    3
+   ],
+   "services": [
+    "Amazon Bedrock model evaluation",
+    "Amazon S3"
+   ],
+   "steps": [
+    "Save these five lines as lab-eval.jsonl:\n{\"prompt\": \"What is the capital of Australia?\", \"referenceResponse\": \"Canberra\"}\n{\"prompt\": \"Name the largest planet in the solar system.\", \"referenceResponse\": \"Jupiter\"}\n{\"prompt\": \"Explain in one sentence what photosynthesis is.\", \"referenceResponse\": \"Plants use light, water, and carbon dioxide to make sugar and oxygen.\"}\n{\"prompt\": \"Give one tip for writing a clear email.\", \"referenceResponse\": \"State the purpose in the first sentence.\"}\n{\"prompt\": \"What is 15 percent of 200?\", \"referenceResponse\": \"30\"}",
+    "Create an S3 bucket lab-eval-<number>, upload lab-eval.jsonl, and create a folder results/ for the output.",
+    "Open Amazon Bedrock → Evaluations → Create, and choose an evaluation that uses an LLM as a judge.",
+    "Select a small model to evaluate, a judge model, and metrics such as correctness, completeness, and helpfulness. Point the dataset to lab-eval.jsonl and the results to the results/ folder.",
+    "Run the job and wait for it to finish, then open the report."
+   ],
+   "check": [
+    "The report shows a score for each metric and an explanation from the judge for each prompt."
+   ],
+   "createsResources": true,
+   "cleanup": [
+    "Empty and delete the bucket lab-eval-<number>.",
+    "Delete the evaluation job, and the IAM role if the console created one."
+   ],
+   "tips": [
+    "Use human evaluation for subjective qualities such as tone and empathy."
+   ],
+   "sources": [
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation.html",
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation-judge.html"
+   ]
+  },
+  {
+   "id": "aif-lab-07",
+   "title": "Build a no-code model with SageMaker Canvas",
+   "goal": "Train a quick model on a sample dataset, read its metrics, and make a prediction without code.",
+   "why": "The ML lifecycle, model metrics, and no-code ML options are Domain 1 topics.",
+   "minutes": 45,
+   "cost": "credits",
+   "costNote": "Canvas charges about $2 per hour of session time while you are logged in, plus training. Log out when you finish.",
+   "level": "Intermediate",
+   "domains": [
+    1
+   ],
+   "services": [
+    "Amazon SageMaker Canvas",
+    "Amazon SageMaker AI"
+   ],
+   "steps": [
+    "Open Amazon SageMaker AI → Canvas and follow the quick setup to create a domain and a user profile (this takes several minutes).",
+    "Open Canvas and choose one of the provided sample datasets, for example a housing or customer churn sample.",
+    "Create a new model, select the target column, and choose Quick build (not Standard build, which takes longer and costs more).",
+    "When the build finishes, open Analyze: note the metrics (for example accuracy and F1 score, or RMSE for numbers) and the column impact chart.",
+    "Make a single prediction by changing a few input values.",
+    "Log out of Canvas from the left menu when you finish."
+   ],
+   "check": [
+    "Canvas shows model metrics and which columns influence predictions the most.",
+    "A single prediction returns a result and a probability or value."
+   ],
+   "createsResources": true,
+   "cleanup": [
+    "Log out of Canvas so session charges stop.",
+    "In SageMaker AI → Domains, delete the Canvas app and user profile, then delete the domain if you created it only for this lab."
+   ],
+   "tips": [
+    "Classification → accuracy, precision, recall, F1. Regression → RMSE or MAE."
+   ],
+   "sources": [
+    "https://docs.aws.amazon.com/sagemaker/latest/dg/canvas.html",
+    "https://docs.aws.amazon.com/sagemaker/latest/dg/canvas-metrics.html"
+   ]
+  },
+  {
+   "id": "aif-lab-08",
+   "title": "Protect sensitive data with AI services",
+   "goal": "Use pre-trained AI services to detect PII, redact it from transcripts, extract document answers, and moderate images.",
+   "why": "Choosing AI services and protecting sensitive data are tested in Domains 1 and 5.",
+   "minutes": 30,
+   "cost": "credits",
+   "costNote": "A few demo requests cost cents at most. Use made-up data only.",
+   "level": "Beginner",
+   "domains": [
+    1,
+    5
+   ],
+   "services": [
+    "Amazon Comprehend",
+    "Amazon Transcribe",
+    "Amazon Textract",
+    "Amazon Rekognition"
+   ],
+   "steps": [
+    "Open Comprehend → Real-time analysis and paste: “Hi, I’m Jane Doe, email jane@example.com, card 4111 1111 1111 1111.” Look at the PII entities.",
+    "Open Transcribe → Real-time transcription, turn on PII identification and redaction, and say a made-up phone number.",
+    "Open Textract → Try the demo, choose a sample document, and use Queries to ask a question such as “What is the total amount?”.",
+    "Open Rekognition → Content moderation and test with one of the sample images."
+   ],
+   "check": [
+    "Comprehend labels the name, email address, and card number as PII.",
+    "The transcript shows the phone number as redacted.",
+    "Textract answers the query with a value and a confidence score."
+   ],
+   "createsResources": false,
+   "tips": [
+    "Redact or mask PII before storing transcripts or sending text to a foundation model."
+   ],
+   "sources": [
+    "https://docs.aws.amazon.com/comprehend/latest/dg/how-pii.html",
+    "https://docs.aws.amazon.com/transcribe/latest/dg/pii-redaction.html",
+    "https://docs.aws.amazon.com/textract/latest/dg/queryresponse.html",
+    "https://docs.aws.amazon.com/rekognition/latest/dg/moderation.html"
+   ]
+  }
+ ]
+}

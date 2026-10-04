@@ -47,7 +47,8 @@
     "minutes": 90
   },
   "includes": [
-    "syllabus"
+    "syllabus",
+    "labs"
   ],
   "storage": {
     "practice": "ai-practitioner-practice-v1",
