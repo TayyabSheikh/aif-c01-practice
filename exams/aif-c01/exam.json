@@ -1,0 +1,57 @@
+{
+  "id": "aif-c01",
+  "code": "AIF-C01",
+  "name": "AI Practitioner",
+  "title": "AWS Certified AI Practitioner",
+  "guide": "https://docs.aws.amazon.com/aws-certification/latest/ai-practitioner-01/ai-practitioner-01.html",
+  "domains": [
+    {
+      "id": 1,
+      "name": "Fundamentals of AI & ML",
+      "short": "AI & ML fundamentals",
+      "weight": 20
+    },
+    {
+      "id": 2,
+      "name": "Fundamentals of GenAI",
+      "short": "Generative AI",
+      "weight": 24
+    },
+    {
+      "id": 3,
+      "name": "Applications of Foundation Models",
+      "short": "Foundation models",
+      "weight": 28
+    },
+    {
+      "id": 4,
+      "name": "Guidelines for Responsible AI",
+      "short": "Responsible AI",
+      "weight": 14
+    },
+    {
+      "id": 5,
+      "name": "Security, Compliance & Governance",
+      "short": "Security & governance",
+      "weight": 14
+    }
+  ],
+  "types": [
+    "single",
+    "multiple",
+    "ordering",
+    "matching"
+  ],
+  "mock": {
+    "questions": 65,
+    "minutes": 90
+  },
+  "includes": [
+    "syllabus"
+  ],
+  "storage": {
+    "practice": "ai-practitioner-practice-v1",
+    "study": "ai-practitioner-study-v1",
+    "labs": "ai-practitioner-labs-v1"
+  }
+}

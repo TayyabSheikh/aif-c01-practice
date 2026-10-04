@@ -1977,7 +1977,7 @@
    "title": "AWS Well-Architected Tool & lenses",
    "priority": "supporting",
    "summary": "Review workloads against AWS best practices, including generative AI, ML, and responsible AI lenses.",
-   "source": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/intro.html",
+   "source": "https://docs.aws.amazon.com/wellarchitected/latest/userguide/",
    "items": [
     {
      "id": "well-architected.tool",

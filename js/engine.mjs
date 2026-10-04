@@ -1,16 +1,14 @@
-export const DOMAINS = [
-  { id: 1, name: 'Fundamentals of AI & ML', short: 'AI & ML fundamentals', weight: 20 },
-  { id: 2, name: 'Fundamentals of GenAI', short: 'Generative AI', weight: 24 },
-  { id: 3, name: 'Applications of Foundation Models', short: 'Foundation models', weight: 28 },
-  { id: 4, name: 'Guidelines for Responsible AI', short: 'Responsible AI', weight: 14 },
-  { id: 5, name: 'Security, Compliance & Governance', short: 'Security & governance', weight: 14 },
-];
+// Pure exam logic. Everything exam-specific (domains, weights, question types, mock size)
+// comes from the exam's exam.json, so new exams need data only.
 export const MODES = {
   quick: { title: 'Quick practice', count: 10, time: '~12 min', symbol: '↗', description: 'Feedback after each answer' },
   learn: { title: 'Learn & review', count: 20, time: 'untimed', symbol: '◎', description: 'More room to understand' },
   mock: { title: 'Timed mock', count: 65, time: '90 min', symbol: '◷', description: 'Results at the end' },
   review: { title: 'Mistake review', count: 20, time: 'untimed', symbol: '↺', description: 'Revisit mistakes and guesses' },
 };
+export function modeInfo(exam, mode) {
+  return mode === 'mock' ? { ...MODES.mock, count: exam.mock.questions, time: `${exam.mock.minutes} min` } : MODES[mode];
+}
 export function shuffle(values, random = Math.random) {
   const result = [...values];
   for (let i = result.length - 1; i > 0; i--) {
@@ -47,38 +45,38 @@ function optionOrder(question, random = Math.random) {
   if (question.type === 'ordering' && order.every((v, i) => v === question.answers[i])) order.push(order.shift());
   return order;
 }
-export function quotas(count) {
-  const rows = DOMAINS.map(d => ({ domain: d.id, count: Math.floor(count * d.weight / 100), fraction: count * d.weight / 100 % 1 }));
+export function quotas(count, domains) {
+  const rows = domains.map(d => ({ domain: d.id, count: Math.floor(count * d.weight / 100), fraction: count * d.weight / 100 % 1 }));
   let left = count - rows.reduce((sum, d) => sum + d.count, 0);
   [...rows].sort((a, b) => b.fraction - a.fraction || a.domain - b.domain).forEach(d => { if (left > 0) { d.count++; left--; } });
   return rows;
 }
 export function needsReview(stats) { return !!stats && (!stats.lastCorrect || stats.lastGuessed); }
-export function chooseQuestions(bank, mode, domain = 0, stats = {}, random = Math.random) {
+export function chooseQuestions(exam, bank, mode, domain = 0, stats = {}, random = Math.random) {
   if (!MODES[mode]) throw new Error('Choose a valid practice mode.');
-  if (!Number.isInteger(domain) || domain < 0 || domain > 5) throw new Error('Choose a valid domain.');
+  if (!Number.isInteger(domain) || (domain !== 0 && !exam.domains.some(d => d.id === domain))) throw new Error('Choose a valid domain.');
   if (mode === 'mock') domain = 0;
   let pool = bank.filter(q => !domain || q.domain === domain);
   if (mode === 'review') pool = pool.filter(q => needsReview(stats[q.id]));
-  const total = Math.min(MODES[mode].count, pool.length);
+  const total = Math.min(modeInfo(exam, mode).count, pool.length);
   if (!total) return [];
   const preferUnseen = list => shuffle(list, random).sort((a, b) => Number(!!stats[a.id]) - Number(!!stats[b.id]));
   if (domain || mode === 'review') return preferUnseen(pool).slice(0, total);
-  const picked = quotas(total).flatMap(d => preferUnseen(pool.filter(q => q.domain === d.domain)).slice(0, d.count));
+  const picked = quotas(total, exam.domains).flatMap(d => preferUnseen(pool.filter(q => q.domain === d.domain)).slice(0, d.count));
   if (picked.length < total) {
     const ids = new Set(picked.map(q => q.id));
     picked.push(...preferUnseen(pool.filter(q => !ids.has(q.id))).slice(0, total - picked.length));
   }
   return shuffle(picked, random);
 }
-export function makeSession(bank, mode, domain, stats = {}, now = Date.now()) {
-  const questions = chooseQuestions(bank, mode, domain, stats);
+export function makeSession(exam, bank, mode, domain, stats = {}, now = Date.now()) {
+  const questions = chooseQuestions(exam, bank, mode, domain, stats);
   if (!questions.length) throw new Error('There are no questions to review yet.');
   return {
     id: `${now}-${Math.random().toString(36).slice(2, 9)}`, mode, domain: mode === 'mock' ? 0 : domain,
     ids: questions.map(q => q.id), orders: Object.fromEntries(questions.map(q => [q.id, optionOrder(q)])),
     answers: {}, checked: {}, flagged: {}, guessed: {}, index: 0, startedAt: now,
-    deadline: mode === 'mock' ? now + 90 * 60 * 1000 : null,
+    deadline: mode === 'mock' ? now + exam.mock.minutes * 60 * 1000 : null,
     previouslySeen: questions.filter(q => stats[q.id]).length,
   };
 }
@@ -101,13 +99,34 @@ export function applyResult(previousStats, result, now = Date.now()) {
   }
   return stats;
 }
-export function validateBank(bank) {
-  if (!Array.isArray(bank) || bank.length < 65) throw new Error('The question bank could not be loaded.');
+const text = value => typeof value === 'string' && value.trim().length > 0;
+export function isAwsSource(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && (url.hostname === 'aws.amazon.com' || url.hostname.endsWith('.aws.amazon.com'));
+  } catch { return false; }
+}
+export function validateExam(exam) {
+  const fail = message => { throw new Error(`Invalid exam ${exam?.id}: ${message}.`); };
+  if (!exam || !/^[a-z0-9-]+$/.test(exam.id || '')) fail('id');
+  if (!['code', 'name', 'title'].every(k => text(exam[k])) || !isAwsSource(exam.guide)) fail('names or guide');
+  const domains = exam.domains;
+  if (!Array.isArray(domains) || !domains.length || domains.some((d, i) => d.id !== i + 1 || !text(d.name) || !text(d.short) || !(d.weight > 0))) fail('domains');
+  if (domains.reduce((sum, d) => sum + d.weight, 0) !== 100) fail('domain weights must add up to 100');
+  if (!Array.isArray(exam.types) || !exam.types.length || exam.types.some(t => !QUESTION_TYPES[t])) fail('question types');
+  if (!Number.isInteger(exam.mock?.questions) || exam.mock.questions < 1 || !Number.isInteger(exam.mock?.minutes) || exam.mock.minutes < 1) fail('mock settings');
+  if (exam.includes !== undefined && (!Array.isArray(exam.includes) || exam.includes.some(x => !['syllabus', 'labs'].includes(x)))) fail('includes');
+  const keys = exam.storage || {};
+  if (!['practice', 'study', 'labs'].every(k => text(keys[k])) || new Set(Object.values(keys)).size !== 3) fail('storage keys');
+  return true;
+}
+export function validateBank(bank, exam) {
+  if (!Array.isArray(bank) || bank.length < exam.mock.questions) throw new Error('The question bank could not be loaded.');
   const ids = new Set(), stems = new Set();
   for (const q of bank) {
     if (!q.id || ids.has(q.id) || !q.question || stems.has(q.question.trim().toLowerCase())) throw new Error('Duplicate or missing question.');
     ids.add(q.id); stems.add(q.question.trim().toLowerCase());
-    if (!DOMAINS.some(d => d.id === q.domain) || !QUESTION_TYPES[q.type]) throw new Error(`Invalid question ${q.id}.`);
+    if (!exam.domains.some(d => d.id === q.domain) || !exam.types.includes(q.type)) throw new Error(`Invalid question ${q.id}.`);
     const unique = list => Array.isArray(list) && new Set(list).size === list.length && list.every(Boolean);
     const option = i => Number.isInteger(i) && i >= 0 && i < q.options.length;
     const optionCount = { single: [4, 4], multiple: [5, 5], ordering: [3, 5], matching: [2, 6] }[q.type];
@@ -123,15 +142,8 @@ export function validateBank(bank) {
   }
   return true;
 }
-export function isAwsSource(value) {
-  try {
-    const url = new URL(value);
-    return url.protocol === 'https:' && (url.hostname === 'aws.amazon.com' || url.hostname.endsWith('.aws.amazon.com'));
-  } catch { return false; }
-}
 export const STUDY_KINDS = { service: 'AWS services', concept: 'Exam concepts', strategy: 'Exam strategy' };
 export function validateSyllabus(syllabus) {
-  const text = value => typeof value === 'string' && value.trim().length > 0;
   if (!syllabus || !Array.isArray(syllabus.sections) || !syllabus.sections.length) throw new Error('The study checklist could not be loaded.');
   const ids = new Set();
   for (const s of syllabus.sections) {
@@ -167,9 +179,31 @@ export function filterStudy(sections, { kind = null, query = '', status = 'all',
     return items.length ? [{ ...s, items }] : [];
   });
 }
-export function validSession(s, bank) {
+export const LAB_COSTS = { free: 'Free', 'always-free': 'Always free', credits: 'Uses credits' };
+export function validateLabs(labs, exam) {
+  if (!labs || !Array.isArray(labs.labs) || !labs.labs.length || !text(labs.intro)) throw new Error('The labs could not be loaded.');
+  const ids = new Set(), list = items => Array.isArray(items) && items.length > 0 && items.every(text);
+  for (const lab of labs.labs) {
+    const fail = message => { throw new Error(`Invalid lab ${lab?.id}: ${message}.`); };
+    if (!lab || !text(lab.id) || ids.has(lab.id)) fail('id');
+    ids.add(lab.id);
+    if (!['title', 'goal', 'why'].every(k => text(lab[k])) || !Number.isInteger(lab.minutes) || lab.minutes < 1) fail('title, goal, why or minutes');
+    if (!LAB_COSTS[lab.cost] || (lab.cost === 'credits' && !text(lab.costNote))) fail('cost');
+    if (!Array.isArray(lab.domains) || !lab.domains.length || lab.domains.some(d => !exam.domains.some(x => x.id === d))) fail('domains');
+    if (!list(lab.services) || !list(lab.steps) || !list(lab.check)) fail('services, steps or checks');
+    if (typeof lab.createsResources !== 'boolean' || (lab.createsResources && !list(lab.cleanup)) || (lab.cleanup !== undefined && !list(lab.cleanup))) fail('clean-up');
+    if (!Array.isArray(lab.sources) || !lab.sources.length || !lab.sources.every(isAwsSource)) fail('sources');
+  }
+  return true;
+}
+export function labProgress(labs, done = {}) {
+  const total = labs.labs.length;
+  return { done: labs.labs.filter(lab => done[lab.id]).length, total };
+}
+export function validSession(s, bank, exam) {
   if (!s || !MODES[s.mode] || !Array.isArray(s.ids) || !s.ids.length || new Set(s.ids).size !== s.ids.length || !Number.isInteger(s.index) || s.index < 0 || s.index >= s.ids.length || !Number.isFinite(s.startedAt)) return false;
   if (s.mode === 'mock' && !Number.isFinite(s.deadline)) return false;
+  if (!Number.isInteger(s.domain) || (s.domain !== 0 && !exam.domains.some(d => d.id === s.domain))) return false;
   const byId = new Map(bank.map(q => [q.id, q]));
   if (!s.orders || !s.answers || !s.checked || !s.flagged || !s.guessed) return false;
   return s.ids.every(id => {

@@ -1,0 +1,17 @@
+{
+  "id": "clf-c02",
+  "code": "CLF-C02",
+  "name": "Cloud Practitioner",
+  "title": "AWS Certified Cloud Practitioner",
+  "guide": "https://docs.aws.amazon.com/aws-certification/latest/cloud-practitioner-02/cloud-practitioner-02.html",
+  "domains": [
+    { "id": 1, "name": "Cloud Concepts", "short": "Cloud concepts", "weight": 24 },
+    { "id": 2, "name": "Security and Compliance", "short": "Security & compliance", "weight": 30 },
+    { "id": 3, "name": "Cloud Technology and Services", "short": "Technology & services", "weight": 34 },
+    { "id": 4, "name": "Billing, Pricing, and Support", "short": "Billing & support", "weight": 12 }
+  ],
+  "types": ["single", "multiple"],
+  "mock": { "questions": 65, "minutes": 90 },
+  "includes": ["syllabus", "labs"],
+  "storage": { "practice": "cloud-practitioner-practice-v1", "study": "cloud-practitioner-study-v1", "labs": "cloud-practitioner-labs-v1" }
+}
