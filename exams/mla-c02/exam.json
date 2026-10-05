@@ -1,0 +1,17 @@
+{
+  "id": "mla-c02",
+  "code": "MLA-C02",
+  "name": "ML Engineer",
+  "title": "AWS Certified Machine Learning Engineer – Associate (MLA-C02 beta, exam code ME1-C02)",
+  "guide": "https://docs.aws.amazon.com/aws-certification/latest/machine-learning-engineer-associate-02/machine-learning-engineer-associate-02.html",
+  "domains": [
+    { "id": 1, "name": "Data Preparation for ML and AI", "short": "Data preparation", "weight": 28 },
+    { "id": 2, "name": "ML Model and Foundation Model Development", "short": "Model & FM development", "weight": 24 },
+    { "id": 3, "name": "Deployment and Orchestration of ML and AI Workflows", "short": "Deployment & orchestration", "weight": 24 },
+    { "id": 4, "name": "Operating, Monitoring, and Securing ML and AI Solutions", "short": "Monitoring & security", "weight": 24 }
+  ],
+  "types": ["single", "multiple"],
+  "mock": { "questions": 85, "minutes": 170 },
+  "includes": [],
+  "storage": { "practice": "ml-engineer-practice-v1", "study": "ml-engineer-study-v1", "labs": "ml-engineer-labs-v1" }
+}
