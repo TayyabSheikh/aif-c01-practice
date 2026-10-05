@@ -12,6 +12,6 @@
   ],
   "types": ["single", "multiple"],
   "mock": { "questions": 85, "minutes": 170 },
-  "includes": [],
+  "includes": ["syllabus"],
   "storage": { "practice": "ml-engineer-practice-v1", "study": "ml-engineer-study-v1", "labs": "ml-engineer-labs-v1" }
 }
