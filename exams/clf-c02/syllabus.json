@@ -616,10 +616,10 @@
     {
      "id": "support.legacy",
      "name": "Legacy plans (ending 1 January 2027)",
-     "summary": "Developer, Business, and Enterprise On-Ramp are being retired; older study material still mentions them.",
-     "details": "Developer Support (business-hours email, for testing), Business Support (24/7 phone and chat, full Trusted Advisor), and Enterprise On-Ramp (a pool of TAMs) end on 1 January 2027. Business Support+ and Enterprise Support replace them. The current exam guide lists the new plans.",
-     "example": "An older practice question asks for the cheapest plan with technical help for a test environment and expects Developer Support.",
-     "tip": "Answer with the plans in the current exam guide: Basic, Business Support+, Enterprise, and Unified Operations.",
+     "summary": "Developer, Business, and Enterprise On-Ramp end in 2027, but AWS’s own practice questions still use them.",
+     "details": "Developer Support (business-hours email, for testing), Business Support (24/7 phone and chat, full Trusted Advisor), and Enterprise On-Ramp (a pool of TAMs) end on 1 January 2027. Business Support+ and Enterprise Support replace them. The exam guide lists the new plans, but the official CLF practice question set (checked October 2026) still asks about the older ones.",
+     "example": "The minimum older plan with 24/7 phone support → Business Support. The cheapest older plan with technical help for a test environment → Developer Support.",
+     "tip": "Use whichever set of names the options use: older names → older rules; Business Support+, Enterprise, or Unified Operations → current rules.",
      "source": "https://docs.aws.amazon.com/awssupport/latest/user/support-plans-eos.html"
     }
    ]
@@ -3408,6 +3408,68 @@
    ]
   },
   {
+   "id": "s-traps",
+   "kind": "strategy",
+   "group": "Exam format & technique",
+   "title": "Common traps",
+   "priority": "core",
+   "summary": "Patterns in AWS’s own practice questions that catch fast readers.",
+   "source": "https://docs.aws.amazon.com/aws-certification/latest/cloud-practitioner-02/cloud-practitioner-02.html",
+   "items": [
+    {
+     "id": "s-traps.names",
+     "name": "Look-alike names",
+     "summary": "Amazon Connect isn’t Direct Connect, DAX isn’t Global Accelerator, and Client VPN isn’t Site-to-Site VPN.",
+     "details": "AWS reuses words across unrelated services. Amazon Connect is a contact center; AWS Direct Connect is a network link. DAX caches DynamoDB reads; Global Accelerator speeds up network paths. Client VPN connects people; Site-to-Site VPN connects networks. Polly speaks text, Transcribe writes down speech, Translate changes the language, and Textract reads documents.",
+     "example": "A data center needs a private link to AWS → Direct Connect, even when “Amazon Connect” is also an option.",
+     "tip": "Match the service’s job, not a word in its name.",
+     "source": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/Welcome.html"
+    },
+    {
+     "id": "s-traps.scope",
+     "name": "Check the scope: AZ, Region, or global",
+     "summary": "Multi-AZ adds availability, not lower latency for distant users, and a load balancer stays in one Region.",
+     "details": "Availability Zones are inside one Region, so spreading across them protects against a data center failure but doesn’t bring an app closer to users on other continents. Elastic Load Balancing spreads traffic across AZs in one Region. For distant users, use more Regions and CloudFront; to route between Regions, use Route 53 or Global Accelerator.",
+     "example": "Users in Asia see slow responses from an app in two AZs in Europe → deploy in an Asian Region and use CloudFront, not a third AZ.",
+     "tip": "IAM, Route 53, and CloudFront are global; EC2, Elastic Load Balancing, and RDS are Regional.",
+     "source": "https://docs.aws.amazon.com/whitepapers/latest/aws-overview/global-infrastructure.html"
+    },
+    {
+     "id": "s-traps.partial",
+     "name": "Options that do part of the job",
+     "summary": "DMS moves database data, not the server it runs on, and Route 53 can’t speed up a single origin.",
+     "details": "Some wrong options are real services that cover part of the requirement. DMS migrates data between databases, while AWS MGN moves whole servers with their apps and databases. Cost and Usage Reports show costs but don’t combine bills; AWS Organizations does. Route 53 latency routing needs several endpoints to choose between.",
+     "example": "Move a Linux server that runs an app and its database to EC2 as is → AWS MGN.",
+     "tip": "Check that the option meets every part of the requirement, not just one.",
+     "source": "https://docs.aws.amazon.com/mgn/latest/ug/what-is-mgn.html"
+    },
+    {
+     "id": "s-traps.wording",
+     "name": "Plain wording that points to a service",
+     "summary": "“Existing internet connection” and “encrypted” → Site-to-Site VPN; “consistent and private” → Direct Connect.",
+     "details": "AWS practice questions often describe the need instead of naming the feature. “Encryption in transit” → TLS certificates from ACM. “Relational” → RDS or Aurora, not DynamoDB. “Programmatic access” → an access key ID plus a secret access key. “Unused EC2 capacity” → Spot Instances. “Read text aloud” → Polly.",
+     "example": "Alert the whole development team when a test fails → Amazon SNS.",
+     "source": "https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html"
+    },
+    {
+     "id": "s-traps.older_plans",
+     "name": "Older support plan names",
+     "summary": "AWS’s practice questions still use Developer, Business, and Enterprise; answer them with the older rules.",
+     "details": "The exam guide now lists Basic, Business Support+, Enterprise, and Unified Operations, but the official practice set (checked October 2026) still asks about the older plans. Under those, Developer had business-hours email support, Business was the minimum for 24/7 phone and chat and all Trusted Advisor checks, Enterprise On-Ramp added a pool of TAMs, and Enterprise had a designated TAM.",
+     "example": "The minimum older plan with phone support → Business Support.",
+     "tip": "Use whichever set of names the options use.",
+     "source": "https://docs.aws.amazon.com/awssupport/latest/user/support-plans-eos.html"
+    },
+    {
+     "id": "s-traps.pace",
+     "name": "Fast answers are where traps work",
+     "summary": "You have about 80 seconds per question; spend some of it checking scope and wording.",
+     "details": "Most of these traps are easy to spot once you read the requirement word by word. In multiple response questions, judge each option as true or false on its own before choosing two.",
+     "example": "Before selecting, ask: does this option meet every requirement, at the right scope, with the right service?"
+    }
+   ]
+  },
+  {
    "id": "s-triggers",
    "kind": "strategy",
    "group": "Exam format & technique",
@@ -3896,7 +3958,7 @@
      "summary": "Free; 24/7 experts and full Trusted Advisor; designated TAM; fastest response.",
      "details": "Basic: account and billing help and core Trusted Advisor checks. Business Support+ (from $29/month): 24/7 technical support, AI-assisted help, all checks. Enterprise (from $5,000/month): designated TAM, 15-minute critical response. Unified Operations (from $50,000/month): 5-minute response and incident management engineers.",
      "example": "Cheapest plan with all Trusted Advisor checks → Business Support+.",
-     "tip": "Older material may mention Developer, Business, and Enterprise On-Ramp, which end on 1 January 2027.",
+     "tip": "If the options use the older names (Developer, Business, Enterprise On-Ramp), use the older rules: 24/7 phone and chat started at Business.",
      "source": "https://aws.amazon.com/premiumsupport/plans/"
     }
    ]

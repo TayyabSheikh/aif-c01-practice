@@ -2439,6 +2439,255 @@
     "source": "https://docs.aws.amazon.com/whitepapers/latest/aws-overview/six-advantages-of-cloud-computing.html"
   },
   {
+    "id": "c1-197",
+    "domain": 1,
+    "topic": "Multi-AZ benefits",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A company runs its web tier on Amazon EC2 instances in two Availability Zones in one AWS Region, behind an Application Load Balancer. Which TWO outcomes does this design provide? (Select TWO.)",
+    "options": [
+      "The application keeps serving users if one Availability Zone has an outage",
+      "Lower latency for users on other continents",
+      "Protection if the entire Region becomes unavailable",
+      "No single data center is a single point of failure for the web tier",
+      "Lower compute costs than running the same number of instances in a single Availability Zone"
+    ],
+    "answers": [
+      0,
+      3
+    ],
+    "explanations": [
+      "AZs are isolated, so the instances in the other AZ keep serving traffic.",
+      "Both AZs are in the same Region, so distant users are no closer. Use more Regions or CloudFront for that.",
+      "A Region-wide event affects every AZ in it; that needs a second Region.",
+      "Spreading instances across AZs removes the dependency on one location.",
+      "Spreading capacity doesn’t lower its price, and data transfer between AZs can add cost."
+    ],
+    "takeaway": "Multi-AZ → availability within a Region. Distant users or a Regional outage → more Regions (and CloudFront).",
+    "source": "https://docs.aws.amazon.com/whitepapers/latest/aws-overview/global-infrastructure.html"
+  },
+  {
+    "id": "c1-198",
+    "domain": 1,
+    "topic": "Global audience",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A video-learning company based in Ireland now gets most of its new subscribers in Australia and Brazil, and they report slow page loads. Which TWO actions will MOST improve their experience? (Select TWO.)",
+    "options": [
+      "Use one Application Load Balancer to send traffic to instances in several Regions",
+      "Serve videos and images through Amazon CloudFront edge locations",
+      "Add a third Availability Zone in the Europe (Ireland) Region",
+      "Move the instances to a larger instance type",
+      "Deploy the application in AWS Regions closer to those subscribers"
+    ],
+    "answers": [
+      1,
+      4
+    ],
+    "explanations": [
+      "A load balancer spreads traffic across AZs within one Region, not across Regions.",
+      "CloudFront caches content close to viewers.",
+      "More AZs improve availability but don’t move the application closer to distant users.",
+      "More CPU doesn’t reduce the network distance to users.",
+      "Nearby Regions shorten the network path for dynamic requests."
+    ],
+    "takeaway": "Distant users → nearby Regions and CloudFront. Load balancers and AZs stay inside one Region.",
+    "source": "https://docs.aws.amazon.com/whitepapers/latest/aws-overview/global-infrastructure.html"
+  },
+  {
+    "id": "c1-199",
+    "domain": 1,
+    "topic": "Whole-server migration",
+    "difficulty": "medium",
+    "type": "single",
+    "question": "A company runs an inventory application and its PostgreSQL database together on one on-premises Linux server. It wants to move the whole server to Amazon EC2 without changes and with minimal downtime. Which AWS service should it use?",
+    "options": [
+      "AWS DataSync",
+      "Migration Evaluator",
+      "AWS Application Migration Service (AWS MGN)",
+      "AWS Database Migration Service (AWS DMS)"
+    ],
+    "answers": [
+      2
+    ],
+    "explanations": [
+      "DataSync copies files and objects between storage systems, not running servers.",
+      "Migration Evaluator builds a cost business case; it doesn’t move servers.",
+      "MGN replicates whole servers, including the applications and databases on them, to EC2 for a lift-and-shift cutover.",
+      "DMS moves database data into a target database; it doesn’t move the server or its application."
+    ],
+    "takeaway": "Move a whole server as is → MGN. Move just the database data → DMS.",
+    "source": "https://docs.aws.amazon.com/mgn/latest/ug/what-is-mgn.html"
+  },
+  {
+    "id": "c1-200",
+    "domain": 1,
+    "topic": "Servers and a database",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A company will rehost 40 on-premises application servers on Amazon EC2. It will also move a separate on-premises MySQL database to Amazon RDS for MySQL with minimal downtime. Which TWO AWS services should it use? (Select TWO.)",
+    "options": [
+      "Migration Evaluator",
+      "AWS Application Migration Service (AWS MGN)",
+      "AWS Database Migration Service (AWS DMS)",
+      "AWS Schema Conversion Tool (AWS SCT)",
+      "AWS Storage Gateway"
+    ],
+    "answers": [
+      1,
+      2
+    ],
+    "explanations": [
+      "Migration Evaluator estimates costs before a migration.",
+      "MGN rehosts the application servers on EC2.",
+      "DMS moves the data and keeps it in sync until cutover.",
+      "SCT converts schemas between different engines; MySQL to MySQL needs no conversion.",
+      "Storage Gateway gives on-premises apps access to cloud storage; it doesn’t migrate servers."
+    ],
+    "takeaway": "Servers → MGN. Database data → DMS. Different engines → add SCT.",
+    "source": "https://docs.aws.amazon.com/mgn/latest/ug/what-is-mgn.html"
+  },
+  {
+    "id": "c1-201",
+    "domain": 1,
+    "topic": "Reliability fixes",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "An architecture review finds that a company’s application and its database run on one Amazon EC2 instance in a single Availability Zone. Which TWO changes improve the reliability of this workload? (Select TWO.)",
+    "options": [
+      "Buy a Reserved Instance for the existing instance",
+      "Turn on detailed monitoring in Amazon CloudWatch and alarm on high CPU utilization",
+      "Run the application on instances in two AZs behind a load balancer",
+      "Move the database to Amazon RDS with a Multi-AZ deployment",
+      "Move the application to a larger instance type"
+    ],
+    "answers": [
+      2,
+      3
+    ],
+    "explanations": [
+      "Reserved Instances lower cost; they don’t add redundancy.",
+      "Monitoring shows problems sooner but doesn’t keep the workload running.",
+      "Instances in two AZs remove the single point of failure in the application tier.",
+      "Multi-AZ keeps a standby in another AZ and fails over automatically.",
+      "A bigger instance is still a single point of failure."
+    ],
+    "takeaway": "Reliability → remove single points of failure: Multi-AZ databases and instances in several AZs.",
+    "source": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html"
+  },
+  {
+    "id": "c1-202",
+    "domain": 1,
+    "topic": "Replatform examples",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "A company is assigning a migration strategy to each application. Which TWO decisions are examples of replatforming? (Select TWO.)",
+    "options": [
+      "Moving a Java app from VMs to AWS Elastic Beanstalk with small configuration changes",
+      "Moving a self-managed SQL Server database to Amazon RDS without changing the application",
+      "Copying virtual machines to Amazon EC2 unchanged with AWS MGN",
+      "Replacing a self-hosted ticketing system with a SaaS product",
+      "Rewriting a monolithic application as event-driven microservices that run on AWS Lambda functions"
+    ],
+    "answers": [
+      0,
+      1
+    ],
+    "explanations": [
+      "A managed platform with small changes is replatforming.",
+      "A managed database gains cloud benefits with few changes: replatform.",
+      "Moving as is, without optimization, is rehosting.",
+      "Moving to a different product is repurchasing.",
+      "Re-architecting is refactoring."
+    ],
+    "takeaway": "Replatform = a few cloud optimizations (managed database or platform) without re-architecting.",
+    "source": "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html"
+  },
+  {
+    "id": "c1-203",
+    "domain": 1,
+    "topic": "Stop guessing capacity",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Which TWO practices are examples of the cloud advantage “stop guessing capacity”? (Select TWO.)",
+    "options": [
+      "Starting with a small database instance and resizing it as usage grows",
+      "Deploying the application in a Region close to its customers",
+      "Buying three years of Reserved Instances up front to cover the peak that the company expects",
+      "Using Auto Scaling to add and remove instances as demand changes",
+      "Sizing a new data center for the busiest day of the year"
+    ],
+    "answers": [
+      0,
+      3
+    ],
+    "explanations": [
+      "You provision for today and scale when needed.",
+      "That relates to going global in minutes, not capacity planning.",
+      "Committing to peak capacity in advance is still guessing.",
+      "Capacity follows actual demand.",
+      "That is the guessing the cloud removes."
+    ],
+    "takeaway": "Stop guessing capacity → provision for actual demand and scale as it changes.",
+    "source": "https://docs.aws.amazon.com/whitepapers/latest/aws-overview/six-advantages-of-cloud-computing.html"
+  },
+  {
+    "id": "c1-204",
+    "domain": 1,
+    "topic": "Business case tools",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A company that doesn’t use AWS yet needs cost estimates for moving its data center workloads, to present to its finance team. Which TWO AWS tools or offerings help? (Select TWO.)",
+    "options": [
+      "AWS Budgets",
+      "AWS Trusted Advisor",
+      "AWS Pricing Calculator",
+      "AWS Cost Explorer",
+      "Migration Evaluator"
+    ],
+    "answers": [
+      2,
+      4
+    ],
+    "explanations": [
+      "Budgets tracks actual or forecast AWS spend against a limit.",
+      "Trusted Advisor checks existing AWS resources against best practices.",
+      "The Pricing Calculator estimates the cost of planned AWS architectures.",
+      "Cost Explorer analyzes existing AWS spending, which the company doesn’t have yet.",
+      "Migration Evaluator analyzes on-premises usage to build a data-driven business case."
+    ],
+    "takeaway": "Before migrating → Pricing Calculator and Migration Evaluator. After → Cost Explorer and Budgets.",
+    "source": "https://aws.amazon.com/migration-evaluator/"
+  },
+  {
+    "id": "c1-205",
+    "domain": 1,
+    "topic": "Performance efficiency principles",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Which TWO are design principles of the performance efficiency pillar of the AWS Well-Architected Framework? (Select TWO.)",
+    "options": [
+      "Experiment more often",
+      "Enable traceability",
+      "Automatically recover from failure",
+      "Adopt a consumption model",
+      "Use serverless architectures"
+    ],
+    "answers": [
+      0,
+      4
+    ],
+    "explanations": [
+      "Easy testing of different resource types is a performance efficiency principle.",
+      "That is a security principle.",
+      "That is a reliability principle.",
+      "That is a cost optimization principle.",
+      "Serverless removes the need to run servers to get performance."
+    ],
+    "takeaway": "Performance efficiency: democratize advanced tech, go global in minutes, use serverless, experiment more often, mechanical sympathy.",
+    "source": "https://docs.aws.amazon.com/wellarchitected/latest/framework/the-pillars-of-the-framework.html"
+  },
+  {
     "id": "c2-101",
     "domain": 2,
     "topic": "AWS responsibility",
@@ -5487,6 +5736,339 @@
     "source": "https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html"
   },
   {
+    "id": "c2-221",
+    "domain": 2,
+    "topic": "Credential types",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A new developer will use both the AWS Management Console and the AWS CLI. Which TWO statements about the credentials involved are correct? (Select TWO.)",
+    "options": [
+      "An EC2 key pair is used to sign API requests to AWS services",
+      "A secret access key can be viewed and copied again from the IAM console at any time after it is created",
+      "An IAM user signs in to the AWS Management Console with a password, plus MFA when it is set up",
+      "AWS CLI and SDK calls are signed with an access key ID and a secret access key",
+      "An account ID and an IAM user name are enough to call AWS APIs"
+    ],
+    "answers": [
+      2,
+      3
+    ],
+    "explanations": [
+      "Key pairs are for connecting to instances with SSH, not for calling AWS APIs.",
+      "The secret is shown just once, when the key is created.",
+      "Console access uses a password and MFA.",
+      "Programmatic access uses the access key pair (or temporary credentials that include one).",
+      "Identifiers aren’t secrets; API calls need signed credentials."
+    ],
+    "takeaway": "Programmatic → access key ID + secret access key. Console → password (+ MFA). SSH → key pair.",
+    "source": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html"
+  },
+  {
+    "id": "c2-222",
+    "domain": 2,
+    "topic": "Lost secret key",
+    "difficulty": "medium",
+    "type": "single",
+    "question": "An administrator created an access key for an IAM user but closed the window without saving the secret access key. What should the administrator do?",
+    "options": [
+      "Reset the user’s console password to show the secret again",
+      "Create a new access key and delete the unused one",
+      "Open an AWS Support case to recover the secret access key",
+      "Retrieve the secret access key from the IAM console"
+    ],
+    "answers": [
+      1
+    ],
+    "explanations": [
+      "Console passwords are separate from access keys.",
+      "A lost secret can’t be recovered, so replace the key.",
+      "AWS can’t retrieve the secret either.",
+      "IAM shows the secret access key just once, when the key is created."
+    ],
+    "takeaway": "Lost secret access key → create a new key and remove the old one.",
+    "source": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html"
+  },
+  {
+    "id": "c2-223",
+    "domain": 2,
+    "topic": "Encryption services",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Which TWO statements about protecting data on AWS are correct? (Select TWO.)",
+    "options": [
+      "AWS Certificate Manager provides TLS certificates that encrypt data in transit",
+      "AWS Shield encrypts network traffic so that attackers can’t read it during a DDoS attack on the application",
+      "AWS KMS manages the keys that services such as Amazon EBS use to encrypt data at rest",
+      "AWS Security Hub encrypts data that moves between AWS accounts",
+      "Amazon Macie encrypts the sensitive data that it finds in Amazon S3"
+    ],
+    "answers": [
+      0,
+      2
+    ],
+    "explanations": [
+      "ACM certificates enable HTTPS and other TLS connections.",
+      "Shield protects availability against DDoS attacks; it doesn’t encrypt data.",
+      "KMS creates and controls encryption keys for data at rest.",
+      "Security Hub collects security findings and runs compliance checks.",
+      "Macie discovers and reports sensitive data; it doesn’t encrypt it."
+    ],
+    "takeaway": "In transit → TLS with ACM certificates. At rest → KMS keys. Shield, Security Hub, and Macie don’t encrypt.",
+    "source": "https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html"
+  },
+  {
+    "id": "c2-224",
+    "domain": 2,
+    "topic": "Vulnerabilities and personal data",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A security team must find known software vulnerabilities on its Amazon EC2 instances and identify S3 objects that contain personal data. Which TWO services should it use? (Select TWO.)",
+    "options": [
+      "Amazon Detective",
+      "Amazon GuardDuty",
+      "Amazon Macie",
+      "AWS Shield",
+      "Amazon Inspector"
+    ],
+    "answers": [
+      2,
+      4
+    ],
+    "explanations": [
+      "Detective helps investigate findings after they occur.",
+      "GuardDuty detects threats from account and network activity, not software vulnerabilities or personal data.",
+      "Macie discovers sensitive data such as personal information in S3.",
+      "Shield protects against DDoS attacks.",
+      "Inspector scans EC2 instances, container images, and Lambda functions for vulnerabilities."
+    ],
+    "takeaway": "Vulnerabilities → Inspector. Sensitive data in S3 → Macie. Threats → GuardDuty. Investigation → Detective.",
+    "source": "https://docs.aws.amazon.com/inspector/latest/user/what-is-inspector.html"
+  },
+  {
+    "id": "c2-225",
+    "domain": 2,
+    "topic": "Who and how much",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "After an outage, an operations team must find out which user deleted a security group and see how the instances’ CPU utilization changed in the hour before. Which TWO services provide this information? (Select TWO.)",
+    "options": [
+      "AWS X-Ray",
+      "Amazon CloudWatch",
+      "AWS Trusted Advisor",
+      "AWS CloudTrail",
+      "Amazon Inspector"
+    ],
+    "answers": [
+      1,
+      3
+    ],
+    "explanations": [
+      "X-Ray traces requests through an application.",
+      "CloudWatch stores metrics such as CPU utilization over time.",
+      "Trusted Advisor gives best-practice recommendations.",
+      "CloudTrail records the API call, including who deleted the security group.",
+      "Inspector finds software vulnerabilities."
+    ],
+    "takeaway": "Who did it → CloudTrail. How the resource performed → CloudWatch.",
+    "source": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html"
+  },
+  {
+    "id": "c2-226",
+    "domain": 2,
+    "topic": "Managed service responsibilities",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A company runs an application on AWS Lambda that stores data in Amazon RDS. Which TWO tasks remain the company’s responsibility? (Select TWO.)",
+    "options": [
+      "Patching the operating system and runtime environment that run the Lambda functions",
+      "Replacing failed storage hardware under the database",
+      "Patching the database engine on the RDS instance",
+      "Keeping secrets such as database passwords out of the function code",
+      "Controlling which identities and networks can connect to the database"
+    ],
+    "answers": [
+      3,
+      4
+    ],
+    "explanations": [
+      "AWS manages the Lambda execution environment.",
+      "AWS maintains the physical infrastructure.",
+      "AWS patches the RDS engine during the maintenance window.",
+      "Protecting credentials and code is the customer’s job.",
+      "IAM, security groups, and database users are configured by the customer."
+    ],
+    "takeaway": "Managed services: AWS patches and runs the platform; the customer controls access, code, and secrets.",
+    "source": "https://aws.amazon.com/compliance/shared-responsibility-model/"
+  },
+  {
+    "id": "c2-227",
+    "domain": 2,
+    "topic": "One bill and guardrails",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A company has 12 AWS accounts that each pay a separate bill. It wants one bill for all accounts and a way to stop any account from using unapproved services. Which TWO AWS features should it use? (Select TWO.)",
+    "options": [
+      "Service control policies (SCPs)",
+      "AWS Budgets in each account",
+      "An IAM password policy in each account",
+      "AWS Artifact agreements",
+      "Consolidated billing in AWS Organizations"
+    ],
+    "answers": [
+      0,
+      4
+    ],
+    "explanations": [
+      "SCPs set the maximum permissions for accounts in an organization.",
+      "Budgets alerts on spending but doesn’t combine bills or block services.",
+      "Password policies set password rules; they don’t restrict services or combine bills.",
+      "Artifact provides compliance reports and agreements.",
+      "Organizations combines the accounts’ charges into one bill."
+    ],
+    "takeaway": "One bill + guardrails across accounts → AWS Organizations (consolidated billing and SCPs).",
+    "source": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_introduction.html"
+  },
+  {
+    "id": "c2-228",
+    "domain": 2,
+    "topic": "Trusted Advisor findings",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Which TWO findings can AWS Trusted Advisor report in its security checks? (Select TWO.)",
+    "options": [
+      "Security groups that allow unrestricted access to specific ports",
+      "Credit card numbers stored in S3 objects",
+      "Malware on an EC2 instance’s volumes",
+      "An AWS account root user without MFA",
+      "Known software vulnerabilities in the container images stored in Amazon ECR repositories"
+    ],
+    "answers": [
+      0,
+      3
+    ],
+    "explanations": [
+      "Trusted Advisor flags rules open to 0.0.0.0/0 on sensitive ports.",
+      "Amazon Macie discovers sensitive data in S3.",
+      "GuardDuty Malware Protection detects malware.",
+      "Trusted Advisor checks whether MFA is turned on for the root user.",
+      "Amazon Inspector scans container images."
+    ],
+    "takeaway": "Trusted Advisor security checks: open security groups, root MFA, public buckets, exposed keys. Not malware, CVEs, or PII.",
+    "source": "https://docs.aws.amazon.com/awssupport/latest/user/trusted-advisor-check-reference.html"
+  },
+  {
+    "id": "c2-229",
+    "domain": 2,
+    "topic": "Workforce and workload access",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "An application on Amazon EC2 needs to read a DynamoDB table, and 200 employees need to sign in to five AWS accounts with their corporate credentials. Which TWO solutions should the company use? (Select TWO.)",
+    "options": [
+      "IAM Identity Center connected to the corporate identity provider",
+      "Long-term access keys stored in the application’s configuration file on the instance",
+      "An Amazon Cognito user pool for the employees",
+      "An IAM role attached to the EC2 instance",
+      "One shared IAM user in each account for the employees"
+    ],
+    "answers": [
+      0,
+      3
+    ],
+    "explanations": [
+      "Employees sign in once and get access to their assigned accounts.",
+      "Long-term keys in files can leak; roles provide temporary credentials.",
+      "Cognito is for the customers of web and mobile apps, not workforce access to AWS accounts.",
+      "The role gives the application temporary credentials automatically.",
+      "Shared users break accountability and least privilege."
+    ],
+    "takeaway": "Workloads → IAM roles. Workforce across accounts → IAM Identity Center. App customers → Cognito.",
+    "source": "https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html"
+  },
+  {
+    "id": "c2-230",
+    "domain": 2,
+    "topic": "Audit evidence",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Auditors ask a company for AWS’s SOC 2 report and for proof that the company’s own resources follow its tagging and encryption rules continuously. Which TWO services provide this? (Select TWO.)",
+    "options": [
+      "Amazon Detective",
+      "Amazon Inspector",
+      "AWS Artifact",
+      "AWS Config",
+      "AWS Shield"
+    ],
+    "answers": [
+      2,
+      3
+    ],
+    "explanations": [
+      "Detective investigates security findings.",
+      "Inspector finds software vulnerabilities, not compliance reports or configuration rules.",
+      "Artifact provides AWS’s compliance reports, such as SOC reports.",
+      "Config rules evaluate resource configurations continuously and keep a history.",
+      "Shield protects against DDoS attacks."
+    ],
+    "takeaway": "AWS’s own compliance reports → Artifact. Your resources’ compliance → Config.",
+    "source": "https://docs.aws.amazon.com/artifact/latest/ug/what-is-aws-artifact.html"
+  },
+  {
+    "id": "c2-231",
+    "domain": 2,
+    "topic": "IAM facts",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Which TWO statements about AWS Identity and Access Management (IAM) are correct? (Select TWO.)",
+    "options": [
+      "IAM users must be created separately in each AWS Region where they need access",
+      "A role provides temporary credentials to the identities that assume it",
+      "A new IAM user has no permissions until a policy grants them",
+      "IAM charges a monthly fee for each user in the account",
+      "IAM groups can contain other IAM groups"
+    ],
+    "answers": [
+      1,
+      2
+    ],
+    "explanations": [
+      "IAM is a global service; users apply in every Region.",
+      "Roles issue temporary security credentials.",
+      "IAM denies by default.",
+      "IAM is offered at no additional charge.",
+      "Groups contain users; they can’t be nested."
+    ],
+    "takeaway": "IAM: global, deny by default, groups hold users, roles give temporary credentials, no extra charge.",
+    "source": "https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html"
+  },
+  {
+    "id": "c2-232",
+    "domain": 2,
+    "topic": "S3 responsibilities",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A company stores customer files in Amazon S3. Which TWO tasks are AWS’s responsibility? (Select TWO.)",
+    "options": [
+      "Storing objects redundantly across multiple devices",
+      "Choosing which customer managed KMS key encrypts the objects",
+      "Deciding whether a bucket can be accessed publicly",
+      "Deciding which users can download objects with presigned URLs",
+      "Patching the servers and software that run the S3 service"
+    ],
+    "answers": [
+      0,
+      4
+    ],
+    "explanations": [
+      "AWS designs and runs S3’s durable storage.",
+      "Encryption choices are the customer’s.",
+      "Block Public Access and bucket policies are customer settings.",
+      "Access to data is the customer’s responsibility.",
+      "AWS maintains the infrastructure behind S3."
+    ],
+    "takeaway": "S3: AWS runs durable, patched infrastructure; the customer controls access and encryption choices.",
+    "source": "https://aws.amazon.com/compliance/shared-responsibility-model/"
+  },
+  {
     "id": "c3-101",
     "domain": 3,
     "topic": "Infrastructure as code",
@@ -7660,11 +8242,11 @@
     "topic": "Lambda time limit",
     "difficulty": "hard",
     "type": "single",
-    "question": "A job runs for about 45 minutes each time it starts. Why is AWS Lambda a poor fit?",
+    "question": "A job runs for about 45 minutes each time it starts. Why is a standard AWS Lambda function a poor fit?",
     "options": [
       "Lambda functions can’t be triggered by events",
       "Lambda requires the company to provision servers",
-      "A single Lambda invocation can run for up to 15 minutes",
+      "A single function invocation can run for up to 15 minutes",
       "Lambda functions can’t read data from Amazon S3"
     ],
     "answers": [
@@ -7673,7 +8255,7 @@
     "explanations": [
       "Events are the main way Lambda is triggered.",
       "Lambda is serverless.",
-      "Longer jobs need services such as Batch, ECS, or EC2.",
+      "The function timeout is at most 15 minutes. Longer jobs fit AWS Batch, ECS, or EC2.",
       "Lambda commonly works with S3."
     ],
     "takeaway": "Over 15 minutes per run → not Lambda.",
@@ -8929,6 +9511,389 @@
     "source": "https://docs.aws.amazon.com/codepipeline/latest/userguide/welcome.html"
   },
   {
+    "id": "c3-237",
+    "domain": 3,
+    "topic": "Global services",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Which TWO AWS services are global services rather than services that run in one AWS Region? (Select TWO.)",
+    "options": [
+      "Amazon RDS",
+      "Amazon Route 53",
+      "Amazon EC2",
+      "Elastic Load Balancing",
+      "Amazon CloudFront"
+    ],
+    "answers": [
+      1,
+      4
+    ],
+    "explanations": [
+      "Databases run in a Region, optionally across AZs.",
+      "Route 53 public DNS is a global service.",
+      "Instances run in a specific AZ of a Region.",
+      "A load balancer runs in one Region and spreads traffic across its AZs.",
+      "CloudFront serves content from edge locations worldwide."
+    ],
+    "takeaway": "Global: IAM, Route 53, CloudFront, Global Accelerator. Regional: EC2, ELB, RDS, VPC.",
+    "source": "https://docs.aws.amazon.com/whitepapers/latest/aws-fault-isolation-boundaries/global-services.html"
+  },
+  {
+    "id": "c3-238",
+    "domain": 3,
+    "topic": "AZs vs edge locations",
+    "difficulty": "medium",
+    "type": "single",
+    "question": "Which statement correctly compares Availability Zones with edge locations?",
+    "options": [
+      "Edge locations keep standby copies of RDS databases for failover",
+      "Edge locations run Amazon EC2 instances close to users",
+      "AZs are spread across several continents so that each Region can serve global users with lower latency",
+      "AZs run instances and databases; edge locations cache content near users"
+    ],
+    "answers": [
+      3
+    ],
+    "explanations": [
+      "RDS standbys run in another AZ of the same Region.",
+      "Edge locations host CloudFront and Route 53, not EC2 instances.",
+      "All of a Region’s AZs are in the same geographic area.",
+      "AZs hold your resources in a Region; edge locations deliver content and DNS answers close to users."
+    ],
+    "takeaway": "AZs = where resources run, inside a Region. Edge locations = content delivery and DNS near users.",
+    "source": "https://docs.aws.amazon.com/whitepapers/latest/aws-overview/global-infrastructure.html"
+  },
+  {
+    "id": "c3-239",
+    "domain": 3,
+    "topic": "Connectivity options",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "Which TWO statements about connecting on-premises networks to AWS are correct? (Select TWO.)",
+    "options": [
+      "Amazon Connect provides a private, dedicated network link between a company’s offices and its VPCs on AWS",
+      "AWS Client VPN connects an entire data center router to a VPC",
+      "AWS Site-to-Site VPN encrypts traffic between an on-premises network and a VPC over the internet",
+      "Amazon CloudFront encrypts traffic between branch offices and a VPC",
+      "AWS Direct Connect provides a dedicated private link that doesn’t use the public internet"
+    ],
+    "answers": [
+      2,
+      4
+    ],
+    "explanations": [
+      "Amazon Connect is a contact center service; the network link is Direct Connect.",
+      "Client VPN connects individual users’ devices.",
+      "Site-to-Site VPN uses IPsec tunnels over an existing internet connection.",
+      "CloudFront delivers content to users; it isn’t a network connection.",
+      "Direct Connect gives consistent performance over a private connection."
+    ],
+    "takeaway": "Encrypted over the internet → Site-to-Site VPN. Dedicated and private → Direct Connect. Individual users → Client VPN.",
+    "source": "https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html"
+  },
+  {
+    "id": "c3-240",
+    "domain": 3,
+    "topic": "Similar names",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A retailer needs a private, dedicated network connection from its data center to AWS. It also wants to run its customer service phone lines from a cloud contact center. Which TWO services should it use? (Select TWO.)",
+    "options": [
+      "AWS Client VPN",
+      "Amazon Connect",
+      "AWS Direct Connect",
+      "Amazon SNS",
+      "Amazon Lex"
+    ],
+    "answers": [
+      1,
+      2
+    ],
+    "explanations": [
+      "Client VPN connects individual remote users over the internet.",
+      "Amazon Connect is a cloud contact center.",
+      "Direct Connect is the dedicated network link.",
+      "SNS sends notifications.",
+      "Lex builds chatbots and voice bots; it can be added to a contact center but doesn’t run one."
+    ],
+    "takeaway": "Direct Connect = network link. Amazon Connect = contact center.",
+    "source": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/Welcome.html"
+  },
+  {
+    "id": "c3-241",
+    "domain": 3,
+    "topic": "Static site speed",
+    "difficulty": "medium",
+    "type": "single",
+    "question": "A company hosts its marketing website as static files in one Amazon S3 bucket in the US East (N. Virginia) Region. Visitors in Australia report slow page loads. Which change will MOST improve their experience?",
+    "options": [
+      "Add a Route 53 latency-based routing record for the bucket",
+      "Serve the bucket through Amazon CloudFront",
+      "Add DynamoDB Accelerator (DAX) in front of the bucket",
+      "Move the files to the S3 One Zone-IA storage class"
+    ],
+    "answers": [
+      1
+    ],
+    "explanations": [
+      "With one bucket there is one endpoint, so latency routing has nothing to choose between.",
+      "CloudFront caches the files at edge locations near visitors.",
+      "DAX is a cache for DynamoDB tables, not for S3 or websites.",
+      "A storage class changes cost and resilience, not the distance to users."
+    ],
+    "takeaway": "Static content for distant users → CloudFront.",
+    "source": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html"
+  },
+  {
+    "id": "c3-242",
+    "domain": 3,
+    "topic": "Speech services",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "A language-learning app must read each lesson aloud to students and convert the students’ spoken answers into text for grading. Which TWO services should it use? (Select TWO.)",
+    "options": [
+      "Amazon Textract",
+      "Amazon Translate",
+      "Amazon Comprehend",
+      "Amazon Transcribe",
+      "Amazon Polly"
+    ],
+    "answers": [
+      3,
+      4
+    ],
+    "explanations": [
+      "Textract extracts text from scanned documents.",
+      "Translate converts text between languages.",
+      "Comprehend finds meaning, such as sentiment, in text.",
+      "Transcribe turns speech into text.",
+      "Polly turns text into speech."
+    ],
+    "takeaway": "Text → speech: Polly. Speech → text: Transcribe.",
+    "source": "https://docs.aws.amazon.com/polly/latest/dg/what-is.html"
+  },
+  {
+    "id": "c3-243",
+    "domain": 3,
+    "topic": "Relational databases",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "An order system needs SQL joins across customer, order, and product tables, with AWS handling database patching. Which TWO services can host this database? (Select TWO.)",
+    "options": [
+      "Amazon ElastiCache",
+      "Amazon Neptune",
+      "Amazon Aurora",
+      "Amazon DynamoDB",
+      "Amazon RDS for PostgreSQL"
+    ],
+    "answers": [
+      2,
+      4
+    ],
+    "explanations": [
+      "ElastiCache is an in-memory cache.",
+      "Neptune is a graph database.",
+      "Aurora is a managed relational database compatible with MySQL and PostgreSQL.",
+      "DynamoDB is a NoSQL key-value database without SQL joins.",
+      "RDS runs managed relational database engines."
+    ],
+    "takeaway": "Relational (SQL, joins) → RDS or Aurora. NoSQL key-value → DynamoDB.",
+    "source": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html"
+  },
+  {
+    "id": "c3-244",
+    "domain": 3,
+    "topic": "S3 characteristics",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "A company will store millions of product images that its website and mobile app read over HTTPS. Which TWO characteristics of Amazon S3 make it a good fit? (Select TWO.)",
+    "options": [
+      "It keeps data until the instance that uses it stops",
+      "It attaches to one EC2 instance as its boot volume",
+      "It is designed for 99.999999999% (11 nines) of durability",
+      "It must be mounted as a network file system before applications can read it",
+      "It stores each image as an object with a key and metadata"
+    ],
+    "answers": [
+      2,
+      4
+    ],
+    "explanations": [
+      "That describes instance store.",
+      "Boot volumes are EBS block storage.",
+      "S3 stores objects redundantly across devices and AZs.",
+      "Network file systems are EFS or FSx; S3 is read over HTTPS.",
+      "S3 is object storage reached through APIs and URLs."
+    ],
+    "takeaway": "S3 = durable object storage over HTTPS. EFS = shared file system. EBS = block volume.",
+    "source": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/DataDurability.html"
+  },
+  {
+    "id": "c3-245",
+    "domain": 3,
+    "topic": "Storage statements",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A team is choosing storage for a fleet of Linux web servers, including their boot volumes and shared content. Which TWO statements about AWS storage are correct? (Select TWO.)",
+    "options": [
+      "Amazon EFS provides SMB file shares for Windows applications",
+      "Instance store volumes keep their data after the instance is stopped and started again",
+      "An Amazon EBS volume provides block storage in one Availability Zone",
+      "Amazon S3 buckets are attached to instances as block devices",
+      "Many Linux instances can mount the same Amazon EFS file system at once"
+    ],
+    "answers": [
+      2,
+      4
+    ],
+    "explanations": [
+      "EFS uses NFS for Linux; SMB shares come from FSx for Windows File Server.",
+      "Instance store data is lost when the instance stops.",
+      "EBS volumes live in one AZ and attach to instances there.",
+      "S3 is object storage accessed through APIs.",
+      "EFS is a shared NFS file system."
+    ],
+    "takeaway": "EFS = shared NFS. EBS = block in one AZ. Instance store = temporary. FSx for Windows = SMB.",
+    "source": "https://docs.aws.amazon.com/efs/latest/ug/whatisefs.html"
+  },
+  {
+    "id": "c3-246",
+    "domain": 3,
+    "topic": "Alerts and queues",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "When a payment fails, an order service must alert the on-call team by email and SMS. It must also hold new orders until the warehouse system is ready to process them. Which TWO services should it use? (Select TWO.)",
+    "options": [
+      "Amazon SNS",
+      "Amazon EventBridge",
+      "Amazon SES",
+      "Amazon SQS",
+      "Amazon Connect"
+    ],
+    "answers": [
+      0,
+      3
+    ],
+    "explanations": [
+      "SNS pushes notifications to email, SMS, and other subscribers.",
+      "EventBridge routes events to targets such as SNS; it doesn’t deliver email or SMS itself.",
+      "SES sends email but not SMS, and it doesn’t queue work for consumers.",
+      "SQS queues messages until consumers are ready.",
+      "Amazon Connect is a contact center service."
+    ],
+    "takeaway": "Notify people → SNS. Buffer work until consumers are ready → SQS.",
+    "source": "https://docs.aws.amazon.com/sns/latest/dg/welcome.html"
+  },
+  {
+    "id": "c3-247",
+    "domain": 3,
+    "topic": "Load balancer scope",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Which TWO statements about Elastic Load Balancing are correct? (Select TWO.)",
+    "options": [
+      "It caches static content at edge locations",
+      "One load balancer distributes incoming traffic to targets in several AWS Regions around the world",
+      "It runs health checks and stops routing traffic to unhealthy targets",
+      "A load balancer can route traffic to targets in several AZs within its Region",
+      "It launches new EC2 instances when CPU utilization is high"
+    ],
+    "answers": [
+      2,
+      3
+    ],
+    "explanations": [
+      "That is CloudFront.",
+      "Load balancers are Regional; use Route 53 or Global Accelerator across Regions.",
+      "Health checks keep traffic away from failed targets.",
+      "Spreading targets across AZs is how ELB adds availability.",
+      "That is EC2 Auto Scaling."
+    ],
+    "takeaway": "ELB: one Region, many AZs, health checks. Across Regions → Route 53 or Global Accelerator.",
+    "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/userguide/what-is-load-balancing.html"
+  },
+  {
+    "id": "c3-248",
+    "domain": 3,
+    "topic": "Lambda fit",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Which TWO workloads are a good fit for AWS Lambda functions? (Select TWO.)",
+    "options": [
+      "An API handler that runs in under a second, a few thousand times a day",
+      "Creating a thumbnail each time an image is uploaded to Amazon S3",
+      "Archiving petabytes of records for seven years",
+      "A licensed application that must run on a dedicated physical server with visible sockets and cores",
+      "Virtual desktops that employees use all day"
+    ],
+    "answers": [
+      0,
+      1
+    ],
+    "explanations": [
+      "You pay per request and duration, with nothing to run between calls.",
+      "Short, event-driven code is Lambda’s main use case.",
+      "Long-term archives belong in S3 Glacier storage classes.",
+      "Per-server licensing needs EC2 Dedicated Hosts.",
+      "Virtual desktops come from Amazon WorkSpaces."
+    ],
+    "takeaway": "Lambda functions: short, event-driven code with no servers to manage.",
+    "source": "https://docs.aws.amazon.com/lambda/latest/dg/welcome.html"
+  },
+  {
+    "id": "c3-249",
+    "domain": 3,
+    "topic": "DynamoDB cache",
+    "difficulty": "medium",
+    "type": "single",
+    "question": "A gaming company’s DynamoDB table receives the same read requests millions of times a minute. It needs microsecond read latency with minimal application changes. Which option fits BEST?",
+    "options": [
+      "Amazon CloudFront",
+      "AWS Global Accelerator",
+      "Amazon DynamoDB global tables",
+      "DynamoDB Accelerator (DAX)"
+    ],
+    "answers": [
+      3
+    ],
+    "explanations": [
+      "CloudFront caches web content at the edge, not DynamoDB reads inside an application.",
+      "Global Accelerator improves network paths to endpoints; it doesn’t cache data.",
+      "Global tables replicate data across Regions; they don’t add an in-memory cache.",
+      "DAX is an in-memory cache built for DynamoDB that needs few code changes."
+    ],
+    "takeaway": "Microsecond reads for DynamoDB → DAX. Global Accelerator speeds up networking, not data.",
+    "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.html"
+  },
+  {
+    "id": "c3-250",
+    "domain": 3,
+    "topic": "SQL and dashboards on S3",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Analysts want to run SQL queries on log files in Amazon S3 without managing servers, and share the results with executives as interactive dashboards. Which TWO services should they use? (Select TWO.)",
+    "options": [
+      "Amazon Athena",
+      "Amazon Kinesis Data Streams",
+      "Amazon Quick Sight",
+      "Amazon EMR on EC2 clusters",
+      "Amazon ElastiCache"
+    ],
+    "answers": [
+      0,
+      2
+    ],
+    "explanations": [
+      "Athena runs serverless SQL queries on data in S3.",
+      "Kinesis ingests streaming data.",
+      "Quick Sight builds interactive BI dashboards.",
+      "EMR on EC2 can run SQL, but the company would manage the clusters.",
+      "ElastiCache is an in-memory cache."
+    ],
+    "takeaway": "Serverless SQL on S3 → Athena. Dashboards → Quick Sight.",
+    "source": "https://docs.aws.amazon.com/athena/latest/ug/what-is.html"
+  },
+  {
     "id": "c4-101",
     "domain": 4,
     "topic": "On-Demand",
@@ -10145,5 +11110,142 @@
     ],
     "takeaway": "How an AWS issue affects your resources → AWS Health Dashboard.",
     "source": "https://docs.aws.amazon.com/health/latest/ug/what-is-aws-health.html"
+  },
+  {
+    "id": "c4-149",
+    "domain": 4,
+    "topic": "Lambda charges",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A company’s charges for its AWS Lambda functions doubled this month. Which TWO changes could explain the increase? (Select TWO.)",
+    "options": [
+      "An alias was created that points to the latest version",
+      "The timeout was raised from 30 to 60 seconds, but run times didn’t change",
+      "The functions were invoked about twice as often",
+      "More environment variables were added to the functions",
+      "Each invocation ran longer at the same memory setting"
+    ],
+    "answers": [
+      2,
+      4
+    ],
+    "explanations": [
+      "Aliases and versions have no charge.",
+      "You pay for the time the code runs, not the timeout setting.",
+      "Lambda charges for each request.",
+      "Environment variables don’t change the price.",
+      "Duration in GB-seconds is the other main charge."
+    ],
+    "takeaway": "Lambda function pricing = number of requests + duration (GB-seconds, based on memory).",
+    "source": "https://aws.amazon.com/lambda/pricing/"
+  },
+  {
+    "id": "c4-150",
+    "domain": 4,
+    "topic": "Older support plans",
+    "difficulty": "medium",
+    "type": "single",
+    "question": "A company’s existing contract lists the older AWS Support plans: Basic, Developer, Business, Enterprise On-Ramp, and Enterprise. Which of these was the MINIMUM plan with 24/7 phone and chat access to support engineers?",
+    "options": [
+      "Business Support",
+      "Enterprise On-Ramp",
+      "Basic Support",
+      "Developer Support"
+    ],
+    "answers": [
+      0
+    ],
+    "explanations": [
+      "Business Support was the lowest-cost plan with 24/7 phone, chat, and web support.",
+      "Enterprise On-Ramp included it but cost more.",
+      "Basic covers account and billing help, not technical support.",
+      "Developer Support offered business-hours web and email access."
+    ],
+    "takeaway": "Older plans: 24/7 phone and chat started at Business. Current plans: Business Support+.",
+    "source": "https://docs.aws.amazon.com/awssupport/latest/user/support-plans-eos.html"
+  },
+  {
+    "id": "c4-151",
+    "domain": 4,
+    "topic": "Support plan facts",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A startup is comparing AWS Support plans before its product launch. Which TWO statements about the plans are correct? (Select TWO.)",
+    "options": [
+      "Every support plan includes the full set of Trusted Advisor checks",
+      "Enterprise Support includes a designated technical account manager (TAM)",
+      "Basic Support includes technical support cases for production outages",
+      "Basic Support includes help with account and billing questions at no cost",
+      "Business Support+ includes a designated technical account manager (TAM) for each account"
+    ],
+    "answers": [
+      1,
+      3
+    ],
+    "explanations": [
+      "Basic includes core checks; the full set needs Business Support+ or higher.",
+      "A designated TAM starts at Enterprise Support.",
+      "Technical cases need a paid plan.",
+      "Every account gets customer service for account and billing.",
+      "Business Support+ gives 24/7 experts but no designated TAM."
+    ],
+    "takeaway": "Basic = billing help + core checks. Business Support+ = 24/7 experts + all checks. Enterprise = designated TAM.",
+    "source": "https://aws.amazon.com/premiumsupport/plans/"
+  },
+  {
+    "id": "c4-152",
+    "domain": 4,
+    "topic": "Spot facts",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "Which TWO statements about Amazon EC2 Spot Instances are correct? (Select TWO.)",
+    "options": [
+      "They suit a production database that must stay online without any interruption",
+      "AWS can reclaim them with a two-minute warning",
+      "Their price is locked for the length of a contract",
+      "They require a one-year or three-year commitment",
+      "They use spare EC2 capacity at a large discount compared with On-Demand prices"
+    ],
+    "answers": [
+      1,
+      4
+    ],
+    "explanations": [
+      "Interruptions make Spot a poor fit for that.",
+      "Spot Instances can be interrupted when AWS needs the capacity back.",
+      "Spot prices change with supply and demand, and there is no contract.",
+      "Spot has no commitment.",
+      "Spot offers unused capacity at up to 90% off."
+    ],
+    "takeaway": "Spot = spare capacity, up to 90% off, two-minute interruption notice, no commitment.",
+    "source": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html"
+  },
+  {
+    "id": "c4-153",
+    "domain": 4,
+    "topic": "Spend alerts and analysis",
+    "difficulty": "easy",
+    "type": "multiple",
+    "question": "A company wants an email when its monthly AWS spend is forecast to pass $500, and it wants to see which services caused last month’s increase. Which TWO tools should it use? (Select TWO.)",
+    "options": [
+      "AWS Artifact",
+      "AWS Pricing Calculator",
+      "AWS Health Dashboard",
+      "AWS Budgets",
+      "AWS Cost Explorer"
+    ],
+    "answers": [
+      3,
+      4
+    ],
+    "explanations": [
+      "Artifact provides compliance reports.",
+      "The Pricing Calculator estimates planned architectures.",
+      "The Health Dashboard reports AWS events.",
+      "Budgets sends alerts on actual or forecast spend.",
+      "Cost Explorer breaks down past spending by service."
+    ],
+    "takeaway": "Alerts → Budgets. Analyze past spend by service → Cost Explorer.",
+    "source": "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html"
   }
 ]

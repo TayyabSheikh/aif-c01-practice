@@ -948,7 +948,7 @@
       "Use larger training instances so that each experiment finishes faster.",
       "Build automated pipelines that record the data version, code, and parameters for each training run.",
       "Let each data scientist deploy directly from a notebook to reduce hand-offs.",
-      "Register each model version with its evaluation metrics before it can be approved for deployment."
+      "Register each model version with its metrics before approval."
     ],
     "answers": [
       2,
@@ -997,8 +997,8 @@
     "type": "multiple",
     "question": "A company deployed an ML model that routes customer support tickets to the right team. The model's F1 score improved from 0.81 to 0.88. Leadership wants to know whether the project is delivering business value. Which TWO metrics should the company report? (Select TWO.)",
     "options": [
-      "Average inference latency of the endpoint",
-      "Validation loss of the latest training run",
+      "Average inference latency of the endpoint during business hours",
+      "Validation loss of the latest model training run",
       "Change in the average time to resolve a ticket",
       "Support cost per ticket compared with before deployment",
       "Precision on the held-out validation set"
@@ -1376,7 +1376,7 @@
     "question": "A company builds a financial-report assistant. A supervisor agent receives each request, delegates data retrieval to one specialist agent and analysis to another, and combines their results. Which TWO statements about this design are accurate? (Select TWO.)",
     "options": [
       "The agents share one context window, so no information needs to be passed between them.",
-      "Specialist agents with narrow responsibilities and tools are easier to test and improve independently.",
+      "Narrow specialist agents are easier to test and improve on their own.",
       "Using multiple agents removes the need to evaluate the final answers.",
       "The supervisor adds coordination steps, so each request can take longer and use more tokens than a single-agent design.",
       "Each specialist agent must use the same foundation model as the supervisor."
@@ -1709,9 +1709,9 @@
     "type": "multiple",
     "question": "A company deploys a generative AI assistant on its customer support website. Which TWO metrics BEST indicate whether the assistant delivers business value? (Select TWO.)",
     "options": [
-      "ROUGE score of responses compared with reference answers",
-      "Number of foundation models evaluated before launch",
-      "Percentage of conversations resolved without escalation to a human agent",
+      "ROUGE score of the assistant's responses compared with reference answers written by agents",
+      "Number of foundation models the team evaluated before choosing one for launch",
+      "Share of conversations resolved without a human agent",
       "Average number of input tokens per conversation",
       "Customer satisfaction (CSAT) scores for conversations handled by the assistant"
     ],
@@ -2193,11 +2193,11 @@
     "type": "multiple",
     "question": "A company's generative AI application costs more than expected. Analysis shows that prompts include entire documents and that responses are much longer than users need. Which TWO actions will MOST directly reduce token costs? (Select TWO.)",
     "options": [
-      "Move to a larger model with a longer context window.",
+      "Move to a larger model with a longer context window so documents fit in one request.",
       "Retrieve only the relevant passages instead of sending entire documents.",
       "Add more few-shot examples to every prompt.",
-      "Instruct the model to be concise and set an appropriate maximum output token limit.",
-      "Increase the temperature so that responses are shorter."
+      "Ask for concise answers and set a maximum output token limit.",
+      "Increase the temperature so that responses become shorter and cheaper."
     ],
     "answers": [
       1,
@@ -2447,8 +2447,8 @@
     "question": "A team needs to store vector embeddings and run similarity searches for a RAG application on AWS. Which TWO AWS services can do this? (Select TWO.)",
     "options": [
       "Amazon RDS for PostgreSQL with the pgvector extension",
-      "AWS Glue Data Catalog",
-      "AWS Lake Formation",
+      "AWS Glue Data Catalog tables that store an embeddings column",
+      "AWS Lake Formation governed tables",
       "Amazon OpenSearch Service",
       "AWS Glue DataBrew"
     ],
@@ -2727,7 +2727,7 @@
       "RAG requires retraining the model every time a document changes.",
       "RAG adds retrieval and vector storage costs and more input tokens per request, but it avoids training costs.",
       "Fine-tuning removes inference charges because the knowledge is built into the model.",
-      "Fine-tuning incurs training and model storage costs, and it must be repeated to add new information.",
+      "Fine-tuning costs training and storage, and must be redone for new information.",
       "RAG and fine-tuning cost the same because both use the same foundation model."
     ],
     "answers": [
@@ -3586,11 +3586,11 @@
     "type": "multiple",
     "question": "A company is evaluating an agent that books meeting rooms by calling calendar and room-reservation tools. Which TWO measures BEST show whether the agent works correctly? (Select TWO.)",
     "options": [
-      "BLEU score of the agent's final message compared with a reference message",
-      "Number of tokens in the agent's system prompt",
+      "BLEU score of the agent's final confirmation message compared with a reference message written by staff",
+      "Number of tokens in the agent's system prompt and tool descriptions",
       "Average temperature setting across requests",
       "Tool-call accuracy: whether the agent chose the right tools with valid parameters at each step",
-      "Task completion rate: the percentage of requests that end with the correct room booked"
+      "Task completion rate: requests that end with the right room booked"
     ],
     "answers": [
       3,
@@ -3615,8 +3615,8 @@
     "question": "A company launched a foundation model-powered assistant that helps employees fill out expense reports. Which TWO metrics BEST show whether the assistant meets its business objective? (Select TWO.)",
     "options": [
       "Cost per assisted expense report, including inference costs",
-      "ROUGE score of the assistant's responses",
-      "Number of prompt versions the team created",
+      "ROUGE score of the assistant's responses against sample answers from finance staff",
+      "Number of prompt versions the team created during development",
       "Number of parameters in the model",
       "Percentage of expense reports completed successfully without help-desk tickets"
     ],
@@ -3642,9 +3642,9 @@
     "type": "multiple",
     "question": "A RAG assistant gives some incorrect answers. The team wants to determine whether each failure comes from retrieval or from generation. Which TWO checks should the team perform? (Select TWO.)",
     "options": [
-      "Compare each answer's BLEU score with a reference answer.",
-      "Check whether each response met the latency target.",
-      "Check whether the retrieved passages contain the information needed to answer the question.",
+      "Compare each answer's BLEU score with a reference answer written by an expert.",
+      "Check whether each response met the latency target for the application.",
+      "Check whether the retrieved passages contain the needed information.",
       "Check whether the answer accurately reflects the retrieved passages.",
       "Check whether the vector store is encrypted at rest."
     ],
@@ -3721,10 +3721,10 @@
     "question": "A company is preparing to launch an AI tool that screens job applications. Which TWO actions provide the MOST useful evidence about whether the tool is fair? (Select TWO.)",
     "options": [
       "Enlarge the training set by duplicating existing records.",
-      "Report the model's overall accuracy on the full test set.",
+      "Report the model's overall accuracy and F1 score on the full held-out test set.",
       "Compare error rates, such as false rejections, across relevant demographic groups.",
       "Remove the gender and age columns and treat the model as fair.",
-      "Audit the training data for representation and label quality across those groups."
+      "Audit the training data for representation across those groups."
     ],
     "answers": [
       2,
@@ -4276,8 +4276,8 @@
     "type": "multiple",
     "question": "A company is about to release a generative AI assistant that gives employees guidance on workplace safety procedures. Which TWO practices BEST reduce the risk of harmful guidance? (Select TWO.)",
     "options": [
-      "Allow the assistant to answer every question to maximize coverage.",
-      "Route high-risk or low-confidence questions to a qualified human expert.",
+      "Allow the assistant to answer every safety question itself to maximize coverage and speed.",
+      "Route high-risk questions to a qualified human expert.",
       "Red-team the assistant with adversarial and unusual prompts before launch.",
       "Raise the temperature to make answers more thorough.",
       "Rely on a system prompt that tells the model to be safe."
@@ -4658,7 +4658,7 @@
     "question": "A company wants to reduce the risk that its customer-facing assistant presents hallucinated information as fact. Which TWO actions will MOST directly help? (Select TWO.)",
     "options": [
       "Remove the system prompt so that the model is less constrained.",
-      "Ground responses in retrieved company documents by using RAG, and show source citations.",
+      "Ground responses in company documents with RAG and cite sources.",
       "Increase the maximum output tokens so that the model can explain itself fully.",
       "Validate outputs before they are shown, for example with a contextual grounding check or confidence thresholds.",
       "Increase the temperature so that the model considers more possible answers."
@@ -7004,7 +7004,7 @@
       "A nightly job converts the day's files from CSV to Parquet format",
       "A research assistant picks its sources and tools based on each question",
       "A payroll system applies fixed tax rules to each employee",
-      "Invoices must always be processed in the same four steps for auditors"
+      "Invoices follow the same four approved steps each time, for auditors"
     ],
     "answers": [
       1
@@ -7132,10 +7132,10 @@
     "type": "multiple",
     "question": "Which TWO components are typically part of an AI agent built with Amazon Bedrock? (Select TWO.)",
     "options": [
-      "A mandatory fine-tuned model for every agent",
+      "A fine-tuned model, which every Bedrock agent requires before it can run",
       "Action groups that define the APIs the agent can call",
       "A dedicated Amazon Redshift cluster",
-      "A GPU cluster that the customer manages",
+      "A GPU cluster that the customer provisions and manages for the agent",
       "A foundation model that reasons about which step to take next"
     ],
     "answers": [
@@ -7599,7 +7599,7 @@
     "question": "A RAG assistant indexes customer-submitted PDFs. One PDF contains hidden text telling the model to reveal other customers' data. Which mitigation is MOST effective?",
     "options": [
       "Increase the number of retrieved chunks so more context dilutes the attack",
-      "Tell the model in the system prompt never to reveal another customer's data",
+      "Tell the model in the system prompt to keep other customers' data private",
       "Switch to a model with a longer context window and stronger reasoning",
       "Treat retrieved text as untrusted and enforce user permissions outside the model"
     ],
@@ -7675,8 +7675,8 @@
     "options": [
       "Only the most likely tokens covering 30% of the probability are sampled.",
       "Responses become about 30% shorter because generation stops earlier.",
-      "Only the first 30% of the prompt is processed, which reduces input token cost.",
-      "The model uses only 30% of its transformer layers, which makes responses faster."
+      "The first 30% of the prompt is processed and the rest is skipped, which reduces input token cost.",
+      "The model runs 30% of its transformer layers, which makes responses faster."
     ],
     "answers": [
       0
@@ -8350,7 +8350,7 @@
     "options": [
       "To shortlist models before testing them on the company's own data",
       "To fine-tune the model on standardized data",
-      "To replace human evaluation entirely for subjective criteria",
+      "To replace human evaluation for subjective criteria such as brand voice",
       "To prove a model will perform well on the company's specific task"
     ],
     "answers": [
@@ -8505,7 +8505,7 @@
     "question": "Which TWO practices improve a dataset for fine-tuning a customer-support model? (Select TWO.)",
     "options": [
       "Convert all examples to embeddings first",
-      "Use only the shortest tickets to reduce cost",
+      "Keep just the shortest tickets to reduce training cost",
       "Mask or remove personal data that the model doesn't need",
       "Remove duplicate and contradictory examples",
       "Include every historical ticket, even ones with wrong answers"
@@ -8535,8 +8535,8 @@
       "ROUGE against human-written reference summaries",
       "F1 score of the summaries",
       "Human review of a sample for accuracy and readability",
-      "Root mean squared error of the summaries",
-      "Word error rate of the summaries"
+      "Root mean squared error between summary lengths and source lengths",
+      "Word error rate of the summaries against the source text"
     ],
     "answers": [
       0,
@@ -8588,11 +8588,11 @@
     "type": "multiple",
     "question": "Which TWO scenarios are examples of attacks that target a generative AI application through its prompts or the content it uses? (Select TWO.)",
     "options": [
-      "The model produces answers in the wrong language",
+      "The model sometimes answers in English when customers write to it in Spanish or French",
       "The model costs more than budgeted",
-      "An attacker inserts fake documents into the knowledge base so the assistant recommends a scam site",
+      "An attacker plants fake documents in the knowledge base to promote a scam site",
       "A user tricks the chatbot into revealing its hidden system prompt",
-      "The model responds slowly during peak hours"
+      "The model responds slowly during peak hours because of throttling limits"
     ],
     "answers": [
       2,
@@ -9314,7 +9314,7 @@
     "question": "A medical device company must explain every automated triage decision to clinicians. A complex model is slightly more accurate than an interpretable one. What is the MOST responsible choice?",
     "options": [
       "Use the complex model and ask an LLM to write explanations",
-      "Use the complex model and explain only the decisions that are appealed",
+      "Use the complex model and explain the decisions that clinicians appeal",
       "Use whichever model trains and deploys faster",
       "Use the interpretable model if its accuracy meets the clinical requirement"
     ],
@@ -9339,7 +9339,7 @@
     "question": "A government agency prefers models whose weights and training data documentation it can inspect. Which option BEST supports this?",
     "options": [
       "Any model with a high score on a public benchmark leaderboard",
-      "A proprietary API-only model with a detailed marketing overview",
+      "A proprietary model offered through an API, with a detailed marketing overview",
       "The model with the lowest price per token",
       "An open-weight model with documentation and a clear license"
     ],
@@ -9413,7 +9413,7 @@
     "type": "multiple",
     "question": "Which TWO dataset characteristics help an AI model perform responsibly across its users? (Select TWO.)",
     "options": [
-      "Only the most common cases, to keep the model simple",
+      "The most common cases alone, to keep the model simple",
       "Diverse examples that represent all intended user groups",
       "Data that includes every available personal attribute",
       "Curated data with accurate, consistent labels",
@@ -9469,8 +9469,8 @@
     "type": "multiple",
     "question": "An AI system decides which customers receive a credit limit increase. Which TWO practices follow human-centered design for explainable AI? (Select TWO.)",
     "options": [
-      "Show customers the model's raw feature weights",
-      "Only explain decisions when regulators ask",
+      "Show customers the model's raw feature weights and full scoring formula",
+      "Explain decisions just when a regulator asks for an explanation",
       "Provide a way for customers to request a human review",
       "Hide that an AI system made the decision",
       "Explain the main reasons for each decision in plain language"
@@ -9665,7 +9665,7 @@
       "Grant each identity only the permissions needed for its task",
       "Grant broad permissions at launch, then narrow them after a year",
       "Share one set of access keys across all applications",
-      "Give every developer administrator access so work is never blocked"
+      "Give every developer administrator access so that work isn't blocked"
     ],
     "answers": [
       0
@@ -9887,7 +9887,7 @@
     "type": "single",
     "question": "A company requires that traffic from its VPC to Amazon Bedrock never crosses the public internet. What should it configure?",
     "options": [
-      "A security group that allows outbound HTTPS only",
+      "A security group that allows just outbound HTTPS traffic",
       "An Amazon CloudFront distribution",
       "An interface VPC endpoint (AWS PrivateLink)",
       "A NAT gateway in a public subnet"
@@ -10190,11 +10190,11 @@
     "type": "multiple",
     "question": "Which TWO measures reduce the risk of sensitive data leaking through a customer-facing RAG chatbot? (Select TWO.)",
     "options": [
-      "Disable model invocation logging permanently",
+      "Disable model invocation logging so prompts aren't stored anywhere",
       "Retrieve more chunks for each question",
       "Retrieve only documents the current user is authorized to see",
-      "Use a larger foundation model with stronger reasoning",
-      "Mask PII in responses with Amazon Bedrock Guardrails sensitive information filters"
+      "Use a larger foundation model with stronger reasoning and safety training",
+      "Mask PII in responses with Guardrails sensitive information filters"
     ],
     "answers": [
       2,
