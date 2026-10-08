@@ -2854,6 +2854,202 @@
     "source": "https://docs.aws.amazon.com/ebs/latest/userguide/what-is-ebs.html"
   },
   {
+    "id": "m1-213",
+    "domain": 1,
+    "topic": "Streams vs Firehose",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Clickstream events feed two consumers: a real-time feature app that sometimes must reprocess the last 24 hours after a bug fix, and an S3 archive that must be stored as Parquet. Which TWO statements about the AWS streaming services are correct? (Select TWO.)",
+    "options": [
+      "Kinesis Data Streams keeps records for a retention period, so consumers can read them again",
+      "Amazon Data Firehose can convert JSON records to Parquet before writing them to S3",
+      "Amazon Data Firehose lets a consumer replay records from a chosen point in the stream",
+      "Managed Service for Apache Flink stores raw records for 365 days so other applications can replay them",
+      "Kinesis Data Streams writes records to S3 as Parquet without any consumer application"
+    ],
+    "answers": [
+      0,
+      1
+    ],
+    "explanations": [
+      "Retention is 24 hours by default and can be extended up to 365 days, which allows replay.",
+      "Record format conversion uses a schema from the AWS Glue Data Catalog.",
+      "Firehose delivers records to destinations; it has no consumer replay.",
+      "Flink processes streams; retention for replay comes from the stream itself.",
+      "A stream needs a consumer, such as Firehose or Flink, to deliver data to S3."
+    ],
+    "takeaway": "Replay → Kinesis Data Streams retention. Delivery to S3 with Parquet conversion → Data Firehose.",
+    "source": "https://docs.aws.amazon.com/firehose/latest/dev/record-format-conversion.html"
+  },
+  {
+    "id": "m1-214",
+    "domain": 1,
+    "topic": "Feature Store stores",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A fraud team uses SageMaker AI Feature Store for a real-time model and for building training sets. Which TWO statements about the feature group’s stores are correct? (Select TWO.)",
+    "options": [
+      "The offline store keeps history in S3 that Athena can query for point-in-time training data",
+      "The offline store serves features to endpoints with single-digit millisecond latency",
+      "The online store keeps the latest record per ID for low-latency reads",
+      "Records written to the offline store are copied to the online store within seconds",
+      "The online store keeps every historical version of a record for time-travel queries"
+    ],
+    "answers": [
+      0,
+      2
+    ],
+    "explanations": [
+      "The offline store appends every record version to S3.",
+      "The offline store is S3-based and is for batch and training use.",
+      "The online store holds current values for real-time lookups.",
+      "Replication runs from the online store to the offline store, not the other way.",
+      "History lives in the offline store; the online store keeps the latest record."
+    ],
+    "takeaway": "Online store = latest values at low latency. Offline store = full history in S3 for training.",
+    "source": "https://docs.aws.amazon.com/sagemaker/latest/dg/feature-store-storage-configurations.html"
+  },
+  {
+    "id": "m1-215",
+    "domain": 1,
+    "topic": "Chunking per document type",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "A Bedrock knowledge base will index two document sets: 5,000 FAQ entries, each a short, self-contained question and answer in its own file, and 300-page manuals where answers need the surrounding section for context. Which TWO chunking configurations fit? (Select TWO.)",
+    "options": [
+      "No chunking for the FAQ files, so each entry stays one chunk",
+      "Hierarchical chunking for the manuals, matching small child chunks and returning their parent sections",
+      "Hierarchical chunking for the FAQ files so that each entry is merged with neighboring entries",
+      "Semantic chunking for the FAQ files with a low breakpoint threshold so each answer splits into sentences",
+      "Fixed-size 20-token chunks for the manuals so that each match is more precise"
+    ],
+    "answers": [
+      0,
+      1
+    ],
+    "explanations": [
+      "Each file becomes a single chunk, which keeps every question with its answer.",
+      "Child chunks are retrieved, then replaced by broader parent chunks for context.",
+      "Merging unrelated entries adds noise to short, self-contained answers.",
+      "Splitting short answers separates questions from their answers.",
+      "Very small chunks lose the surrounding context that the answers need."
+    ],
+    "takeaway": "Short self-contained files → no chunking. Long structured documents → hierarchical chunking.",
+    "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/kb-chunking.html"
+  },
+  {
+    "id": "m1-216",
+    "domain": 1,
+    "topic": "Leak-free time-series features",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "An XGBoost model predicts tomorrow’s sales for each store from daily history. Which TWO features are appropriate and avoid leakage? (Select TWO.)",
+    "options": [
+      "Sales for the same store 1 day and 7 days before the prediction date",
+      "Day of week and a public holiday flag for the prediction date",
+      "A 7-day rolling average of sales centered on the prediction date",
+      "Total sales for the full month that contains the prediction date",
+      "The store’s sales on the prediction date, averaged with the regional total for that day"
+    ],
+    "answers": [
+      0,
+      1
+    ],
+    "explanations": [
+      "Lagged values are known when the prediction is made.",
+      "Calendar facts are known in advance.",
+      "A centered window includes days after the prediction date.",
+      "The monthly total includes the target and later days.",
+      "This uses the target value itself."
+    ],
+    "takeaway": "Time-series features must be known at prediction time: lags and calendar facts, not windows that reach forward.",
+    "source": "https://docs.aws.amazon.com/sagemaker/latest/dg/deepar.html"
+  },
+  {
+    "id": "m1-217",
+    "domain": 1,
+    "topic": "Glue Data Quality rules",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "An AWS Glue ETL job must stop the load when customer_id has any missing values or when fewer than 10,000 rows arrive. Which TWO DQDL rules implement these checks? (Select TWO.)",
+    "options": [
+      "IsUnique \"customer_id\"",
+      "Completeness \"customer_id\" > 0.5",
+      "DataFreshness \"updated_at\" <= 24 hours",
+      "RowCount >= 10000",
+      "IsComplete \"customer_id\""
+    ],
+    "answers": [
+      3,
+      4
+    ],
+    "explanations": [
+      "Uniqueness doesn’t detect missing values or low volume.",
+      "This passes even when up to half of the values are missing.",
+      "Freshness checks how recent the data is, not how many rows arrived.",
+      "RowCount checks the number of rows in the dataset.",
+      "IsComplete passes only when every value in the column is present."
+    ],
+    "takeaway": "No missing values → IsComplete. Minimum volume → RowCount.",
+    "source": "https://docs.aws.amazon.com/glue/latest/dg/glue-data-quality.html"
+  },
+  {
+    "id": "m1-218",
+    "domain": 1,
+    "topic": "Vector count and storage",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A team is estimating the size and cost of the vector index for a new knowledge base. Which TWO settings MOST directly determine how many vectors are stored and how large each one is? (Select TWO.)",
+    "options": [
+      "The chunk size and overlap, which set how many chunks are created",
+      "The reranker model that reorders retrieved passages at query time",
+      "The number of results retrieved for each query",
+      "The temperature of the model that generates answers",
+      "The embedding model’s output dimension"
+    ],
+    "answers": [
+      0,
+      4
+    ],
+    "explanations": [
+      "Each chunk becomes one vector.",
+      "Reranking happens after retrieval and stores nothing.",
+      "Retrieval settings don’t change what is stored.",
+      "Generation settings don’t affect the index.",
+      "Each vector stores one number per dimension."
+    ],
+    "takeaway": "Index size ≈ number of chunks × vector dimension.",
+    "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/kb-chunking.html"
+  },
+  {
+    "id": "m1-219",
+    "domain": 1,
+    "topic": "Serverless Spark",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A team has PySpark feature engineering scripts and wants to run them on large datasets in S3 without provisioning or managing clusters. Which TWO AWS services can run this code? (Select TWO.)",
+    "options": [
+      "AWS Lambda functions with the maximum memory setting",
+      "Amazon EMR Serverless",
+      "AWS Glue Spark jobs",
+      "Amazon Redshift Serverless with SQL queries",
+      "Amazon EMR on EC2 with an instance fleet that the team sizes and patches"
+    ],
+    "answers": [
+      1,
+      2
+    ],
+    "explanations": [
+      "Lambda isn’t a distributed Spark runtime.",
+      "EMR Serverless runs Spark applications without clusters to manage.",
+      "Glue runs Spark jobs serverlessly.",
+      "Redshift runs SQL, not PySpark scripts.",
+      "EMR on EC2 runs Spark, but the team manages the cluster."
+    ],
+    "takeaway": "Serverless Spark → AWS Glue or EMR Serverless.",
+    "source": "https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-what-is-emr.html"
+  },
+  {
     "id": "m2-101",
     "domain": 2,
     "topic": "Compare candidate FMs",
@@ -5296,6 +5492,174 @@
     "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation-judge.html"
   },
   {
+    "id": "m2-197",
+    "domain": 2,
+    "topic": "Match customization methods",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A company wants a Bedrock model to learn its internal research vocabulary from 2 GB of unlabeled notes, and separately to answer in a fixed JSON schema learned from 3,000 labeled prompt-response examples. Which TWO customization methods match these needs? (Select TWO.)",
+    "options": [
+      "Supervised fine-tuning on the labeled prompt-response examples",
+      "Distillation from the unlabeled notes into a smaller model",
+      "Reinforcement fine-tuning that uses the unlabeled notes as its rewards",
+      "Continued pre-training on the labeled JSON examples",
+      "Continued pre-training on the unlabeled notes"
+    ],
+    "answers": [
+      0,
+      4
+    ],
+    "explanations": [
+      "Fine-tuning on labeled pairs teaches a task and an output format.",
+      "Distillation transfers a teacher model’s behavior through prompts and responses, not unlabeled domain text.",
+      "Reinforcement fine-tuning needs a reward function or graders, not raw notes.",
+      "Labeled task examples fit supervised fine-tuning.",
+      "Continued pre-training adapts a model to a domain with unlabeled text."
+    ],
+    "takeaway": "Unlabeled domain text → continued pre-training. Labeled input-output pairs → fine-tuning.",
+    "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/custom-model-fine-tuning.html"
+  },
+  {
+    "id": "m2-198",
+    "domain": 2,
+    "topic": "Tuning strategy facts",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Each training job in a SageMaker AI tuning job takes 3 hours, and the budget allows about 40 jobs. Which TWO statements about the tuning strategies are correct? (Select TWO.)",
+    "options": [
+      "Bayesian optimization uses the results of completed jobs to choose the next hyperparameters",
+      "Random search uses the results of completed jobs to narrow the ranges it samples next",
+      "Hyperband stops weak jobs early and gives more resources to promising configurations",
+      "Bayesian optimization works best when all 40 jobs run in parallel at the same time",
+      "Grid search samples continuous ranges at random points"
+    ],
+    "answers": [
+      0,
+      2
+    ],
+    "explanations": [
+      "It treats tuning as a regression problem and learns from earlier jobs.",
+      "Random search samples independently of earlier results.",
+      "Early stopping and reallocation save time on long jobs.",
+      "Running everything at once leaves no completed results to learn from.",
+      "Grid search tries every combination of categorical values."
+    ],
+    "takeaway": "Bayesian learns from earlier jobs; Hyperband stops weak jobs early; grid search needs categorical values.",
+    "source": "https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning-how-it-works.html"
+  },
+  {
+    "id": "m2-199",
+    "domain": 2,
+    "topic": "Read a confusion matrix",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A binary classifier’s confusion matrix shows 90 true positives, 10 false positives, 30 false negatives, and 870 true negatives. Which TWO statements are correct? (Select TWO.)",
+    "options": [
+      "Recall is 0.75",
+      "Specificity is 0.75",
+      "Precision is 0.90",
+      "Accuracy is 0.90",
+      "F1 score is 0.90"
+    ],
+    "answers": [
+      0,
+      2
+    ],
+    "explanations": [
+      "90 / (90 + 30) = 0.75.",
+      "Specificity is 870 / (870 + 10) ≈ 0.99.",
+      "90 / (90 + 10) = 0.90.",
+      "Accuracy is (90 + 870) / 1,000 = 0.96.",
+      "F1 is 2 × 0.90 × 0.75 / 1.65 ≈ 0.82."
+    ],
+    "takeaway": "Precision = TP / (TP + FP). Recall = TP / (TP + FN).",
+    "source": "https://docs.aws.amazon.com/sagemaker/latest/dg/canvas-metrics.html"
+  },
+  {
+    "id": "m2-200",
+    "domain": 2,
+    "topic": "When RAG fits better",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A team is deciding between RAG and fine-tuning for an internal assistant. Which TWO requirements favor RAG? (Select TWO.)",
+    "options": [
+      "The underlying policies change several times a week",
+      "The model must learn a new output format that examples in the prompt can’t teach",
+      "Every reply must follow a distinctive brand voice",
+      "Answers must cite the documents they came from",
+      "Prompts must stay short to cut input tokens on every request"
+    ],
+    "answers": [
+      0,
+      3
+    ],
+    "explanations": [
+      "Updating documents is faster and cheaper than retraining.",
+      "New formats and behaviors are a fit for fine-tuning.",
+      "Style and tone are taught by fine-tuning or prompting.",
+      "RAG returns the source passages, so answers can cite them.",
+      "RAG adds retrieved passages, which increases input tokens."
+    ],
+    "takeaway": "Fresh, citable knowledge → RAG. Style, format, and behavior → fine-tuning.",
+    "source": "https://aws.amazon.com/what-is/retrieval-augmented-generation/"
+  },
+  {
+    "id": "m2-201",
+    "domain": 2,
+    "topic": "Retrieve-only evaluation metrics",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "Before evaluating generation, a team runs an Amazon Bedrock retrieve-only RAG evaluation job to check whether its knowledge base returns useful passages. Which TWO built-in metrics does this type of job provide? (Select TWO.)",
+    "options": [
+      "Citation precision",
+      "Context relevance",
+      "Faithfulness",
+      "Context coverage",
+      "BLEU"
+    ],
+    "answers": [
+      1,
+      3
+    ],
+    "explanations": [
+      "Citation metrics apply to generated answers in retrieve-and-generate jobs.",
+      "It measures how relevant the retrieved texts are to each question.",
+      "Faithfulness is a retrieve-and-generate metric that checks answers against the passages.",
+      "It measures how much of the ground truth the retrieved texts cover.",
+      "BLEU compares generated text with references; it isn’t a built-in RAG metric."
+    ],
+    "takeaway": "Retrieve-only → context relevance and context coverage. Retrieve-and-generate → correctness, faithfulness, citations, and more.",
+    "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation-kb.html"
+  },
+  {
+    "id": "m2-202",
+    "domain": 2,
+    "topic": "Pick built-in algorithms",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A data center team has two needs: flag unusual readings in unlabeled server metrics, and forecast power demand for 3,000 related racks. Which TWO SageMaker AI built-in algorithms match these needs? (Select TWO.)",
+    "options": [
+      "BlazingText for the unusual readings",
+      "Linear Learner for the unlabeled readings",
+      "k-means for the power demand forecasts",
+      "DeepAR for the power demand forecasts",
+      "Random Cut Forest for the unusual readings"
+    ],
+    "answers": [
+      3,
+      4
+    ],
+    "explanations": [
+      "BlazingText works with text.",
+      "Linear Learner is supervised and needs labels.",
+      "k-means clusters data; it doesn’t forecast.",
+      "DeepAR learns across many related time series.",
+      "RCF detects anomalies without labels."
+    ],
+    "takeaway": "Unlabeled anomalies → Random Cut Forest. Many related time series → DeepAR.",
+    "source": "https://docs.aws.amazon.com/sagemaker/latest/dg/randomcutforest.html"
+  },
+  {
     "id": "m3-101",
     "domain": 3,
     "topic": "Intermittent traffic",
@@ -7721,6 +8085,174 @@
     ],
     "takeaway": "SageMaker Pipelines → orchestration with lineage.",
     "source": "https://docs.aws.amazon.com/sagemaker/latest/dg/pipelines.html"
+  },
+  {
+    "id": "m3-197",
+    "domain": 3,
+    "topic": "Match inference options",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A team hosts two models: a scikit-learn model that gets a few requests an hour at random times, and a video model that processes 800 MB uploads for about 20 minutes each. Which TWO inference options fit? (Select TWO.)",
+    "options": [
+      "Batch transform for the scikit-learn model, so each request is answered on arrival",
+      "A real-time endpoint for the video model with a longer client timeout",
+      "Serverless inference for the scikit-learn model",
+      "Asynchronous inference for the video model",
+      "Serverless inference for the video model, with 6 GB of memory"
+    ],
+    "answers": [
+      2,
+      3
+    ],
+    "explanations": [
+      "Batch transform scores datasets offline; it doesn’t answer individual requests.",
+      "Real-time endpoints answer within seconds; they aren’t built for 20-minute jobs.",
+      "Serverless scales with requests and charges nothing while idle.",
+      "Async queues requests with payloads up to 1 GB and processing up to one hour.",
+      "Serverless is for short requests with small payloads."
+    ],
+    "takeaway": "Sporadic and small → serverless. Large and long-running → asynchronous. Offline datasets → batch transform.",
+    "source": "https://docs.aws.amazon.com/sagemaker/latest/dg/async-inference.html"
+  },
+  {
+    "id": "m3-198",
+    "domain": 3,
+    "topic": "Deployment guardrail facts",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A team updates a SageMaker AI real-time endpoint with deployment guardrails and wants automatic protection against a bad model. Which TWO statements are correct? (Select TWO.)",
+    "options": [
+      "Linear traffic shifting moves all traffic in one step after a single baking period",
+      "Canary traffic shifting sends a small share of traffic to the new fleet before the rest",
+      "Rolling back requires redeploying the previous model version from Model Registry",
+      "Alarms that fire during baking trigger an automatic rollback",
+      "Rolling deployments need twice the usual instance count during the update"
+    ],
+    "answers": [
+      1,
+      3
+    ],
+    "explanations": [
+      "That describes all-at-once; linear moves traffic in equal steps.",
+      "The canary is watched during a baking period before full traffic moves.",
+      "Guardrails roll back automatically to the fleet that is still running.",
+      "Guardrails roll back to the old fleet when an alarm fires.",
+      "Blue/green needs a full second fleet; rolling updates replace capacity in batches."
+    ],
+    "takeaway": "Guardrails: blue/green (all at once, canary, linear) or rolling, with alarm-based automatic rollback.",
+    "source": "https://docs.aws.amazon.com/sagemaker/latest/dg/deployment-guardrails-blue-green-canary.html"
+  },
+  {
+    "id": "m3-199",
+    "domain": 3,
+    "topic": "Workflow orchestrators",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A team needs a workflow that runs a SageMaker AI processing job, then a training job, then a model evaluation, waiting for each step to finish and retrying failures. Which TWO services can orchestrate this? (Select TWO.)",
+    "options": [
+      "Amazon EventBridge Scheduler",
+      "Amazon SageMaker Pipelines",
+      "AWS CodeBuild with a single buildspec file",
+      "AWS Step Functions",
+      "Amazon SQS with a dead-letter queue"
+    ],
+    "answers": [
+      1,
+      3
+    ],
+    "explanations": [
+      "Scheduler starts targets on a schedule; it doesn’t manage steps or wait for them.",
+      "Pipelines runs ML steps in order with retries and passes outputs between them.",
+      "CodeBuild runs build commands; it isn’t a workflow engine for long-running jobs.",
+      "Step Functions integrates with SageMaker AI jobs and waits for them to complete.",
+      "Queues pass messages; they don’t orchestrate dependent jobs."
+    ],
+    "takeaway": "ML workflows → SageMaker Pipelines or Step Functions (or MWAA when a team already runs Airflow).",
+    "source": "https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html"
+  },
+  {
+    "id": "m3-200",
+    "domain": 3,
+    "topic": "AgentCore tools and identity",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A support agent hosted on AgentCore Runtime must call 30 internal REST APIs as MCP tools, and it must create tickets in a third-party SaaS tool on behalf of each signed-in user through OAuth. Which TWO AgentCore services provide these capabilities? (Select TWO.)",
+    "options": [
+      "AgentCore Memory",
+      "AgentCore Observability",
+      "AgentCore Identity",
+      "AgentCore Gateway",
+      "AgentCore Code Interpreter"
+    ],
+    "answers": [
+      2,
+      3
+    ],
+    "explanations": [
+      "Memory stores conversation context and long-term facts.",
+      "Observability traces agent runs.",
+      "Identity manages OAuth tokens so the agent can act on behalf of each user.",
+      "Gateway turns APIs and Lambda functions into MCP tools for agents.",
+      "Code Interpreter runs generated code in a sandbox."
+    ],
+    "takeaway": "APIs as tools → Gateway. Acting on behalf of users with OAuth → Identity.",
+    "source": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html"
+  },
+  {
+    "id": "m3-201",
+    "domain": 3,
+    "topic": "Scaling policies for two patterns",
+    "difficulty": "hard",
+    "type": "multiple",
+    "question": "An LLM endpoint streams responses for 10–40 seconds per request with variable traffic. A separate tabular endpoint needs four instances every weekday from 18:00 to 22:00 and one otherwise. Which TWO scaling configurations fit? (Select TWO.)",
+    "options": [
+      "Scheduled scaling before 18:00 for the tabular endpoint",
+      "Scheduled scaling for the LLM endpoint’s unpredictable bursts",
+      "Target tracking on the high-resolution concurrent requests per model metric for the LLM endpoint",
+      "Target tracking on CPU utilization for the GPU-based LLM endpoint",
+      "Step scaling on invocations per instance with a one-hour cooldown period for the streaming LLM endpoint"
+    ],
+    "answers": [
+      0,
+      2
+    ],
+    "explanations": [
+      "A known daily peak fits a schedule.",
+      "Schedules fit known patterns, not random bursts.",
+      "Concurrency reflects load for long, streaming requests.",
+      "CPU doesn’t reflect load on a GPU model serving long requests.",
+      "Invocation counts lag for long requests, and a long cooldown reacts too slowly."
+    ],
+    "takeaway": "Long streaming requests → concurrency-based target tracking. Known peaks → scheduled scaling.",
+    "source": "https://docs.aws.amazon.com/sagemaker/latest/dg/endpoint-auto-scaling-add-code-define.html"
+  },
+  {
+    "id": "m3-202",
+    "domain": 3,
+    "topic": "Container release pipeline",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "An ML team uses CodePipeline to release a custom inference container to a SageMaker AI endpoint. Which TWO stages belong in the pipeline? (Select TWO.)",
+    "options": [
+      "A deploy stage that updates the endpoint through CloudFormation",
+      "A CodeDeploy stage that deploys the image directly to the SageMaker AI endpoint",
+      "A CodeCommit stage that retrains the model on every push",
+      "A stage that copies the image layers into the model.tar.gz artifact in S3",
+      "A CodeBuild stage that builds the image and pushes it to Amazon ECR with a commit-ID tag"
+    ],
+    "answers": [
+      0,
+      4
+    ],
+    "explanations": [
+      "CloudFormation (or an SDK call) updates the endpoint configuration.",
+      "CodeDeploy targets EC2, on-premises servers, Lambda, and ECS, not SageMaker AI endpoints.",
+      "CodeCommit stores code; it doesn’t run training.",
+      "Images live in ECR; model.tar.gz holds model files.",
+      "CodeBuild builds and pushes versioned images."
+    ],
+    "takeaway": "Build and push → CodeBuild and ECR. Deploy to SageMaker AI → CloudFormation (or the SDK) from the pipeline.",
+    "source": "https://docs.aws.amazon.com/codepipeline/latest/userguide/welcome.html"
   },
   {
     "id": "m4-101",
@@ -10163,5 +10695,173 @@
     ],
     "takeaway": "Strong isolation → multi-account environments with Organizations and SCPs.",
     "source": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_introduction.html"
+  },
+  {
+    "id": "m4-197",
+    "domain": 4,
+    "topic": "Inference instance choices",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A company serves a transformer model with steady, high traffic on GPU instances and a small XGBoost model that needs about 2 ms of CPU per request. Which TWO changes are MOST likely to lower inference cost? (Select TWO.)",
+    "options": [
+      "Move the transformer model to memory-optimized ml.r instances to keep weights in RAM",
+      "Add more GPU instances behind the transformer endpoint to lower latency",
+      "Move the XGBoost model to ml.p5 GPU instances so requests finish sooner",
+      "Move the transformer model to AWS Inferentia2-based ml.inf2 instances",
+      "Run the XGBoost model on a smaller general purpose CPU instance"
+    ],
+    "answers": [
+      3,
+      4
+    ],
+    "explanations": [
+      "CPU memory doesn’t replace accelerator throughput for a transformer.",
+      "More instances raise cost.",
+      "GPUs add cost without helping a tiny CPU-bound model.",
+      "Inferentia2 is built for low-cost, high-throughput inference.",
+      "A small CPU instance fits a light model."
+    ],
+    "takeaway": "Steady transformer inference → Inferentia2. Small CPU model → small CPU instance.",
+    "source": "https://aws.amazon.com/ai/machine-learning/inferentia/"
+  },
+  {
+    "id": "m4-198",
+    "domain": 4,
+    "topic": "Private access to approved models",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A bank requires that prompts sent to Amazon Bedrock never cross the public internet and that applications can invoke just two approved models. Which TWO controls meet these requirements? (Select TWO.)",
+    "options": [
+      "An interface VPC endpoint for the Bedrock runtime API",
+      "An S3 bucket policy on the bucket that stores the base model weights",
+      "Bedrock Guardrails denied topics that name the unapproved models",
+      "IAM policies that allow bedrock:InvokeModel on the two model ARNs",
+      "A NAT gateway with a route to the Bedrock public endpoint"
+    ],
+    "answers": [
+      0,
+      3
+    ],
+    "explanations": [
+      "PrivateLink keeps traffic on the AWS network.",
+      "Bedrock base model weights aren’t stored in your S3 buckets.",
+      "Guardrails filter content; they don’t control which models can be called.",
+      "Resource-level permissions limit which models can be called.",
+      "NAT sends traffic to the public endpoint through an internet gateway."
+    ],
+    "takeaway": "Private path → interface VPC endpoint. Which models → IAM resource ARNs (or SCPs).",
+    "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/vpc-interface-endpoints.html"
+  },
+  {
+    "id": "m4-199",
+    "domain": 4,
+    "topic": "Cut idle endpoint cost",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A real-time SageMaker AI endpoint runs four instances around the clock, but it gets traffic only from 08:00 to 18:00 on weekdays. Which TWO changes reduce cost? (Select TWO.)",
+    "options": [
+      "Buy a SageMaker Savings Plan for the instance that runs all the time",
+      "Use scheduled scaling to run fewer instances outside business hours",
+      "Raise the minimum instance count to four so that scaling keeps capacity steady",
+      "Turn on data capture for every request to find the idle periods",
+      "Buy a Compute Savings Plan to discount the endpoint instances"
+    ],
+    "answers": [
+      0,
+      1
+    ],
+    "explanations": [
+      "A commitment discounts the steady baseline.",
+      "Capacity follows the known traffic pattern.",
+      "This keeps paying for idle capacity.",
+      "Data capture adds storage cost and doesn’t reduce compute.",
+      "Compute Savings Plans don’t apply to SageMaker AI; SageMaker Savings Plans do."
+    ],
+    "takeaway": "Idle hours → scale down on a schedule. Steady baseline → SageMaker Savings Plans, not Compute Savings Plans.",
+    "source": "https://aws.amazon.com/savingsplans/ml-pricing/"
+  },
+  {
+    "id": "m4-200",
+    "domain": 4,
+    "topic": "Why an agent is slow and costly",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "An agent on AgentCore Runtime has become slower and more expensive, although the number of sessions is flat. Which TWO sources show where the time and tokens go? (Select TWO.)",
+    "options": [
+      "AWS Config configuration timelines for the agent’s IAM role and runtime",
+      "AgentCore Observability traces for each model call and tool call",
+      "VPC Flow Logs for the subnets that the agent’s runtime uses",
+      "AWS Trusted Advisor cost optimization checks",
+      "CloudWatch token count metrics per model"
+    ],
+    "answers": [
+      1,
+      4
+    ],
+    "explanations": [
+      "Config records configuration changes, not runtime behavior.",
+      "Traces show the latency and steps of every call.",
+      "Flow logs show network connections, not model or tool time.",
+      "Trusted Advisor checks resource usage, not agent steps.",
+      "Token metrics show where costs grow."
+    ],
+    "takeaway": "Agent latency and cost → per-step traces (AgentCore Observability) plus token metrics.",
+    "source": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability.html"
+  },
+  {
+    "id": "m4-201",
+    "domain": 4,
+    "topic": "Guardrail policies for two rules",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "A banking assistant must refuse to give investment advice in any wording, and it must mask credit card numbers in its responses. Which TWO Amazon Bedrock Guardrails policies should the team configure? (Select TWO.)",
+    "options": [
+      "Content filters for hate and violence set to high strength",
+      "A contextual grounding check for investment advice",
+      "A denied topic that describes investment advice",
+      "A word filter listing every possible credit card number",
+      "A sensitive information filter that masks credit card numbers"
+    ],
+    "answers": [
+      2,
+      4
+    ],
+    "explanations": [
+      "Content filters target harmful categories, not card numbers or advice.",
+      "Grounding checks compare answers with source passages, not topics.",
+      "Denied topics block a subject however it is phrased.",
+      "Card numbers can’t be listed; PII filters detect the pattern.",
+      "PII filters detect card numbers and mask or block them."
+    ],
+    "takeaway": "A topic in any wording → denied topics. PII such as card numbers → sensitive information filters.",
+    "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html"
+  },
+  {
+    "id": "m4-202",
+    "domain": 4,
+    "topic": "Respond to a container CVE",
+    "difficulty": "medium",
+    "type": "multiple",
+    "question": "Amazon Inspector reports a critical vulnerability in the base image of a container that serves a production SageMaker AI endpoint. Which TWO actions should the team take? (Select TWO.)",
+    "options": [
+      "Restart the endpoint instances so the operating system patches the container",
+      "Update the endpoint to the new image and confirm that the next scan clears the finding",
+      "Rebuild the image on a patched base image and push it through the release pipeline",
+      "Turn off enhanced scanning on the repository to stop repeat alerts",
+      "Suppress the finding so that the release pipeline can continue"
+    ],
+    "answers": [
+      1,
+      2
+    ],
+    "explanations": [
+      "The vulnerable package is inside the image; a restart runs the same image.",
+      "Redeploying and rescanning verifies the fix in production.",
+      "Fixing the image removes the vulnerable package.",
+      "Turning off scanning removes visibility.",
+      "Suppressing hides the risk without fixing it."
+    ],
+    "takeaway": "Vulnerable image → rebuild on a patched base, redeploy, and verify with a rescan.",
+    "source": "https://docs.aws.amazon.com/inspector/latest/user/scanning-ecr.html"
   }
 ]

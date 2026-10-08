@@ -912,16 +912,17 @@
    "group": "End-user computing",
    "title": "Amazon WorkSpaces Secure Browser",
    "priority": "supporting",
-   "summary": "Secure browser access to internal websites and SaaS apps, with no data left on the device.",
+   "summary": "Streamed browser for internal websites and SaaS apps; closed to new customers from 29 October 2026.",
    "source": "https://aws.amazon.com/workspaces/secure-browser/",
    "items": [
     {
      "id": "secure_browser.overview",
-     "name": "Secure web access",
-     "summary": "Users open internal web apps in a streamed browser session; nothing is stored on their device.",
-     "details": "WorkSpaces Secure Browser (formerly WorkSpaces Web) streams a browser session from AWS, so company web content never lands on the user’s device, reducing the risk of data loss.",
+     "name": "Secure web access (closing to new customers)",
+     "summary": "Users open internal web apps in a streamed browser; nothing lands on their device. New sign-ups end 29 Oct 2026.",
+     "details": "WorkSpaces Secure Browser (formerly WorkSpaces Web) streams a browser session from AWS, so company web content never lands on the user’s device. AWS closes it to new customers on 29 October 2026, and existing customers keep using it. For new setups, AWS recommends WorkSpaces Applications (formerly AppStream 2.0) with a Chrome image, which gives the same pixel-streaming isolation.",
      "example": "Contractors use an internal HR portal from personal devices without being able to download files.",
-     "tip": "Secure access to web applications only → WorkSpaces Secure Browser."
+     "tip": "The exam guide still lists it: secure access to web apps only, from unmanaged devices → WorkSpaces Secure Browser.",
+     "source": "https://docs.aws.amazon.com/workspaces-web/latest/adminguide/workspaces-secure-browser-maintenance-mode.html"
     }
    ]
   },
@@ -1057,11 +1058,11 @@
     {
      "id": "ai_services.q",
      "name": "Amazon Q",
-     "summary": "Generative AI assistant for business users (Q Business) and developers (Q Developer).",
-     "details": "Amazon Q Business answers questions and completes tasks using a company’s own data and systems. Amazon Q Developer helps developers write, explain, and upgrade code and work with AWS.",
-     "example": "Employees ask an assistant about leave policy and get answers from internal documents.",
-     "tip": "Generative AI assistant for employees or developers → Amazon Q.",
-     "source": "https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/what-is.html"
+     "summary": "Generative AI assistants: Q Developer for developers; Q Business closed to new customers in July 2026.",
+     "details": "Amazon Q Developer helps developers write, explain, and upgrade code and work with AWS. Amazon Q Business answers employees’ questions from company data; it closed to new customers on 30 July 2026, and Amazon Quick is its successor. The exam guide still lists Amazon Q.",
+     "example": "A developer asks an assistant in the IDE to explain and upgrade old Java code.",
+     "tip": "Generative AI assistant for developers or employees → Amazon Q (new business users get Amazon Quick).",
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/qbusiness-availability-change.html"
     }
    ]
   },
@@ -1424,16 +1425,17 @@
    "group": "Migration & transfer",
    "title": "AWS Application Discovery Service",
    "priority": "supporting",
-   "summary": "Collects data about on-premises servers to plan a migration.",
+   "summary": "Collects data about on-premises servers to plan a migration; closed to new customers since November 2025.",
    "source": "https://docs.aws.amazon.com/application-discovery/latest/userguide/what-is-appdiscovery.html",
    "items": [
     {
      "id": "discovery.overview",
      "name": "Discover on-premises servers",
      "summary": "Gathers server specifications, utilization, and dependencies to plan migration waves.",
-     "details": "Application Discovery Service uses agents or agentless collectors to gather configuration, usage, and network dependency data about on-premises servers.",
+     "details": "Application Discovery Service uses agents or agentless collectors to gather configuration, usage, and network dependency data about on-premises servers. It stopped accepting new customers on 7 November 2025, and AWS Transform now provides similar capabilities, but the exam guide still lists it.",
      "example": "A company maps which servers talk to each other before deciding what to move together.",
-     "tip": "Discover on-premises inventory and dependencies → Application Discovery Service."
+     "tip": "Discover on-premises inventory and dependencies → Application Discovery Service.",
+     "source": "https://docs.aws.amazon.com/application-discovery/latest/userguide/application-discovery-service-availability-change.html"
     }
    ]
   },
@@ -2983,7 +2985,7 @@
      "id": "c-ai-analytics.ai_vs_ml",
      "name": "AI services vs SageMaker AI",
      "summary": "Use pre-trained AI services for common tasks; use SageMaker AI to build custom models.",
-     "details": "AI services such as Rekognition, Comprehend, and Transcribe solve common tasks through an API with no ML expertise. SageMaker AI is for teams that build, train, and deploy their own models. Amazon Q is a generative AI assistant.",
+     "details": "AI services such as Rekognition, Comprehend, and Transcribe solve common tasks through an API with no ML expertise. SageMaker AI is for teams that build, train, and deploy their own models. Amazon Q Developer is a generative AI assistant for building on AWS.",
      "example": "Detecting faces in photos → Rekognition; predicting churn from company data with a custom model → SageMaker AI.",
      "tip": "No ML expertise and a common task → a pre-trained AI service."
     },
@@ -3023,7 +3025,7 @@
      "id": "c-other.euc",
      "name": "Virtual desktops and streamed apps",
      "summary": "WorkSpaces for full desktops, AppStream 2.0 for single apps, WorkSpaces Secure Browser for web apps.",
-     "details": "These services present VMs or applications on end-user devices while the workload and data stay in AWS.",
+     "details": "These services present VMs or applications on end-user devices while the workload and data stay in AWS. WorkSpaces Secure Browser closes to new customers on 29 October 2026; AWS points new customers to WorkSpaces Applications (AppStream 2.0) with a Chrome image.",
      "example": "Call center staff use WorkSpaces desktops; designers stream one CAD application with AppStream 2.0."
     },
     {
@@ -3466,6 +3468,49 @@
      "summary": "You have about 80 seconds per question; spend some of it checking scope and wording.",
      "details": "Most of these traps are easy to spot once you read the requirement word by word. In multiple response questions, judge each option as true or false on its own before choosing two.",
      "example": "Before selecting, ask: does this option meet every requirement, at the right scope, with the right service?"
+    }
+   ]
+  },
+  {
+   "id": "s-changes",
+   "kind": "strategy",
+   "group": "Exam format & technique",
+   "title": "Services that changed recently",
+   "priority": "core",
+   "summary": "In-scope services that AWS closed to new customers or renamed, and how to answer about them.",
+   "source": "https://docs.aws.amazon.com/aws-certification/latest/cloud-practitioner-02/clf-02-in-scope-services.html",
+   "items": [
+    {
+     "id": "s-changes.secure_browser",
+     "name": "WorkSpaces Secure Browser (29 October 2026)",
+     "summary": "New customers can’t sign up from 29 October 2026; existing customers keep it. The exam guide still lists it.",
+     "details": "AWS recommends WorkSpaces Applications (formerly AppStream 2.0) with a Chrome image for new browser-isolation setups. On the exam, browser-only secure access to internal web apps still points to Secure Browser.",
+     "example": "Contractors on personal laptops need an internal web portal with downloads blocked → WorkSpaces Secure Browser.",
+     "source": "https://docs.aws.amazon.com/workspaces-web/latest/adminguide/workspaces-secure-browser-maintenance-mode.html"
+    },
+    {
+     "id": "s-changes.migration_tools",
+     "name": "Migration Hub and Application Discovery Service (November 2025)",
+     "summary": "Both closed to new customers on 7 November 2025; AWS Transform now covers discovery and tracking.",
+     "details": "Existing customers keep using them, and the exam guide still lists both, so answer with them when a scenario asks to discover servers or track migrations. Application Migration Service, DMS, and Migration Evaluator are unaffected.",
+     "example": "Track the progress of migrations across several tools → Migration Hub.",
+     "source": "https://docs.aws.amazon.com/migrationhub/latest/ug/migrationhub-availability-change.html"
+    },
+    {
+     "id": "s-changes.q_business",
+     "name": "Amazon Q Business (30 July 2026)",
+     "summary": "Closed to new customers; Amazon Quick is its successor. Amazon Q Developer is unaffected.",
+     "details": "The exam guide lists Amazon Q. An assistant that answers employees from company documents was Amazon Q Business; for new setups AWS points to Amazon Quick. An assistant that writes and explains code is Amazon Q Developer.",
+     "example": "Help developers upgrade old code in the IDE → Amazon Q Developer.",
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/qbusiness-availability-change.html"
+    },
+    {
+     "id": "s-changes.renames",
+     "name": "Same services, new names",
+     "summary": "AppStream 2.0 is now WorkSpaces Applications, QuickSight is Quick Sight, and Kinesis Data Firehose is Data Firehose.",
+     "details": "Questions may use either name. The vault-based Amazon Glacier service closed to new customers in November 2025, but the S3 Glacier storage classes that exam questions ask about are unaffected.",
+     "example": "Stream one desktop application to a browser → AppStream 2.0 (WorkSpaces Applications).",
+     "source": "https://aws.amazon.com/workspaces/applications/"
     }
    ]
   },
@@ -3922,6 +3967,7 @@
      "summary": "Full virtual desktop; stream one application; secure access to web apps.",
      "details": "WorkSpaces provides persistent virtual desktops. AppStream 2.0 (now WorkSpaces Applications) streams individual desktop applications. WorkSpaces Secure Browser streams a browser for internal web apps.",
      "example": "Give designers one CAD application in the browser → AppStream 2.0.",
+     "tip": "Secure Browser closes to new customers on 29 October 2026, but the exam guide still lists it for browser-only access.",
      "source": "https://docs.aws.amazon.com/workspaces/latest/adminguide/amazon-workspaces.html"
     }
    ]
