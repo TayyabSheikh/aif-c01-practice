@@ -6069,6 +6069,31 @@
     "source": "https://aws.amazon.com/compliance/shared-responsibility-model/"
   },
   {
+    "id": "c2-233",
+    "domain": 2,
+    "topic": "Approved self-service products",
+    "difficulty": "medium",
+    "type": "single",
+    "question": "A company wants developers to launch pre-approved, standardized setups, such as an encrypted database built from a CloudFormation template, from a self-service portal. Which AWS service should it use?",
+    "options": [
+      "Service control policies in AWS Organizations",
+      "AWS Service Catalog",
+      "AWS Marketplace",
+      "AWS Config"
+    ],
+    "answers": [
+      1
+    ],
+    "explanations": [
+      "SCPs limit what accounts can do; they don’t offer launchable products.",
+      "Service Catalog lets administrators publish approved products that users can launch themselves.",
+      "Marketplace sells third-party software; it isn’t a catalog of your own approved templates.",
+      "Config evaluates resources after they are created."
+    ],
+    "takeaway": "Self-service launch of approved products → Service Catalog.",
+    "source": "https://docs.aws.amazon.com/servicecatalog/latest/adminguide/introduction.html"
+  },
+  {
     "id": "c3-101",
     "domain": 3,
     "topic": "Infrastructure as code",
@@ -9894,6 +9919,56 @@
     "source": "https://docs.aws.amazon.com/athena/latest/ug/what-is.html"
   },
   {
+    "id": "c3-251",
+    "domain": 3,
+    "topic": "Share subnets across accounts",
+    "difficulty": "medium",
+    "type": "single",
+    "question": "A networking account owns a VPC and its subnets. Application teams in other accounts in the same organization must launch instances into those subnets. Which service should the networking team use to share them?",
+    "options": [
+      "AWS Resource Access Manager (AWS RAM)",
+      "AWS IAM Identity Center",
+      "AWS Transit Gateway",
+      "VPC peering between each application VPC and the networking VPC"
+    ],
+    "answers": [
+      0
+    ],
+    "explanations": [
+      "RAM shares resources such as subnets and transit gateways with other accounts.",
+      "Identity Center manages sign-in to accounts, not resource sharing.",
+      "Transit Gateway connects networks; it is itself shared through RAM.",
+      "Peering connects VPCs; it doesn’t let other accounts launch into your subnets."
+    ],
+    "takeaway": "Share resources such as subnets with other accounts → AWS RAM.",
+    "source": "https://docs.aws.amazon.com/ram/latest/userguide/what-is.html"
+  },
+  {
+    "id": "c3-252",
+    "domain": 3,
+    "topic": "Browser-only access for contractors",
+    "difficulty": "medium",
+    "type": "single",
+    "question": "Contractors must use a company’s internal web applications from their personal laptops. Company data must not be downloaded or stored on the laptops, and the contractors don’t need a full desktop. Which AWS service is designed for this?",
+    "options": [
+      "Amazon WorkSpaces",
+      "Amazon CloudFront",
+      "Amazon WorkSpaces Secure Browser",
+      "AWS Client VPN with split tunneling turned off"
+    ],
+    "answers": [
+      2
+    ],
+    "explanations": [
+      "WorkSpaces provides full virtual desktops, which the contractors don’t need.",
+      "CloudFront delivers content to devices; it doesn’t isolate it.",
+      "Secure Browser streams a browser session from AWS, so web content never lands on the device. It closes to new customers on 29 October 2026 (AWS points to WorkSpaces Applications with a Chrome image), but the exam guide still lists it.",
+      "A VPN connects the laptops to the network, so data can still be downloaded."
+    ],
+    "takeaway": "Secure, browser-only access to internal web apps → WorkSpaces Secure Browser.",
+    "source": "https://docs.aws.amazon.com/workspaces-web/latest/adminguide/workspaces-secure-browser-maintenance-mode.html"
+  },
+  {
     "id": "c4-101",
     "domain": 4,
     "topic": "On-Demand",
@@ -11247,5 +11322,30 @@
     ],
     "takeaway": "Alerts → Budgets. Analyze past spend by service → Cost Explorer.",
     "source": "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html"
+  },
+  {
+    "id": "c4-154",
+    "domain": 4,
+    "topic": "Raise an account limit",
+    "difficulty": "easy",
+    "type": "single",
+    "question": "A new application needs 200 vCPUs of On-Demand EC2 capacity in one Region, but launches fail because the account has reached its limit. Which AWS service should the company use to request a higher limit?",
+    "options": [
+      "AWS Compute Optimizer",
+      "AWS Budgets",
+      "Service Quotas",
+      "AWS Trusted Advisor"
+    ],
+    "answers": [
+      2
+    ],
+    "explanations": [
+      "Compute Optimizer recommends instance sizes.",
+      "Budgets tracks costs, not service limits.",
+      "Service Quotas shows your account’s limits and lets you request increases.",
+      "Trusted Advisor can warn when usage nears a limit, but it doesn’t raise it."
+    ],
+    "takeaway": "View and raise account limits → Service Quotas.",
+    "source": "https://docs.aws.amazon.com/servicequotas/latest/userguide/intro.html"
   }
 ]
